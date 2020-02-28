@@ -1,0 +1,7 @@
+name: mini-wake
+channels:
+  - defaults
+dependencies:
+  - numpy
+  - scipy
+  - pytest
