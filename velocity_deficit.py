@@ -2,6 +2,19 @@ from scipy import integrate
 from math import sqrt
 from scipy import interpolate
 from numpy import isnan
+import math
+
+
+def calculate_shape(normalized_position):
+    if abs(normalized_position) > 1.0:
+        return 0.0
+    else:
+        return math.exp(-3.56 * (normalized_position ** 2.0))
+
+
+def calculate_width(thrust_coefficient, velocity_deficit):
+
+    return math.sqrt(3.56 * thrust_coefficient / (8.0 * velocity_deficit * (1.0 - 0.5 * velocity_deficit)))
 
 
 class AndersonSimplifiedSolution:
@@ -41,8 +54,7 @@ class AndersonSimplifiedSolution:
         return self.thrust_coefficient - 0.05 - (16.0 * self.thrust_coefficient - 0.5) * self.ambient_turbulence / 10.0
 
     def b(self, velocity_deficit):
-        #wake width (from Aimslie, 1988)
-        return sqrt(3.65 * self.thrust_coefficient / (8.0 * velocity_deficit * (1.0 - 0.5 * velocity_deficit)))
+        return calculate_width(self.thrust_coefficient, velocity_deficit)
 
     def epsilon(self, normalised_distance_downwind, center_line_velocity):
 
