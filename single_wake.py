@@ -3,6 +3,7 @@ from velocity_deficit import calculate_width
 from velocity_deficit import calculate_velocity_deficit
 from added_turbulence import quarton_added_turbulence
 from meander import calculate_meander
+from near_wake_length import calculate_near_wake_length
 
 
 class NoWake:
@@ -54,15 +55,23 @@ class SingleWake:
                      ambient_turbulence_intensity,
                      upwind_diameter,
                      upwind_thrust_coefficient,
+                     upwind_velocity,
                      upwind_local_turbulence_intensity,
-                     upwind_near_wake_length,
-                     apply_meander):
+                     upwind_rpm,
+                     upwind_number_of_blades=3,
+                     apply_meander=True):
 
             self.ambient_turbulence_intensity = ambient_turbulence_intensity
             self.upwind_diameter = upwind_diameter
             self.upwind_thrust_coefficient = upwind_thrust_coefficient
             self.upwind_local_turbulence_intensity = upwind_local_turbulence_intensity
-            self.upwind_near_wake_length = upwind_near_wake_length
+
+            self.upwind_near_wake_length = calculate_near_wake_length(diameter=upwind_diameter,
+                                                                      thrust_coefficient=upwind_thrust_coefficient,
+                                                                      rpm=upwind_rpm,
+                                                                      number_of_blades=upwind_number_of_blades,
+                                                                      velocity=upwind_velocity,
+                                                                      turbulence_intensity=ambient_turbulence_intensity)
 
             self.apply_meander = apply_meander
 
