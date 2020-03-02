@@ -67,7 +67,7 @@ def calculate_radius(diameter):
     return diameter * 0.5
 
 
-def calculate_near_wake_length(diameter, thrust_coefficient, rpm, number_of_blades, velocity, turbulence):
+def calculate_near_wake_length(diameter, thrust_coefficient, rpm, number_of_blades, velocity, turbulence_intensity):
 
     # The near wake length is the distance after which the potential core is completely eroded
 
@@ -75,6 +75,6 @@ def calculate_near_wake_length(diameter, thrust_coefficient, rpm, number_of_blad
     tip_speed_ratio = calculate_tip_speed_ratio(calculate_angular_velocity(rpm), calculate_radius(diameter), velocity)
 
     return calculate_n(flow_field_ratio) * calculate_radius_of_inviscid_expanded_rotor_disk(diameter, flow_field_ratio) \
-           / calculate_total_wake_erosion_rate(calculate_ambient_turbulence_wake_erosion_rate(turbulence),
+           / calculate_total_wake_erosion_rate(calculate_ambient_turbulence_wake_erosion_rate(turbulence_intensity),
                                                calculate_shear_generated_turbulence_wake_erosion_rate(flow_field_ratio),
                                                calculate_mechanical_turbulence_wake_erosion_rate(number_of_blades, tip_speed_ratio))

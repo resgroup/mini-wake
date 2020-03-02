@@ -13,5 +13,6 @@ def test_calculate_velocity_deficit():
 def test_calculate_shape():
     assert calculate_shape(math.sqrt(1.0 / 3.56)) == pytest.approx(math.exp(-1.0))
 
+
 def test_calculate_wake_width():
 	assert calculate_width(0.4, 0.229031) == pytest.approx(71.20098095 / 76.0)
