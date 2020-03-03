@@ -5,4 +5,5 @@ dependencies:
   - numpy
   - scipy
   - pytest
+  - pytest-cov
   - coverage

@@ -16,8 +16,7 @@ install:
 build: false
 
 test_script:
-  - coverage run -m pytest --junitxml=test-output.xml
-  - coverage xml
+  - pytest --cov=./
 
 on_finish:
   - codecov
