@@ -10,7 +10,7 @@ install:
   - rm ~/miniconda.sh
   - export PATH=~/miniconda/bin:$PATH
   - conda env create -f environment.yml
-  - source activate MeasurementCampaignRawDataProcessor
+  - source activate mini-wake
   - pip install codecov
 
 build: false
