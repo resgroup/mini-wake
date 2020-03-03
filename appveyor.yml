@@ -19,10 +19,8 @@ test_script:
   - coverage run -m pytest --junitxml=test-output.xml
   - coverage xml
 
-after_success:
-  - codecov
-
 on_finish:
+  - codecov
   - sh: |
       find "$APPVEYOR_BUILD_FOLDER" -type f -name 'test-output.xml' -print0 | xargs -0 -I '{}' curl -F 'file=@{}' "https://ci.appveyor.com/api/testresults/junit/$APPVEYOR_JOB_ID"
 
