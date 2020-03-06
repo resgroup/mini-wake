@@ -1,9 +1,9 @@
-from velocity_deficit import calculate_shape
-from velocity_deficit import calculate_width
-from velocity_deficit import calculate_velocity_deficit
-from added_turbulence import quarton_added_turbulence
-from meander import calculate_meander
-from near_wake_length import calculate_near_wake_length
+from .velocity_deficit import calculate_shape
+from .velocity_deficit import calculate_width
+from .velocity_deficit import calculate_velocity_deficit
+from .added_turbulence import quarton_added_turbulence
+from .meander import calculate_meander
+from .near_wake_length import calculate_near_wake_length
 
 
 class NoWake:
@@ -87,7 +87,7 @@ class SingleWake:
             wake_width = normalized_wake_width * self.upwind_diameter
 
             if self.apply_meander:
-                meander = calculate_meander(normalized_distance_downwind, velocity_deficit, normalized_wake_width, self.ambient_turbulence)
+                meander = calculate_meander(normalized_distance_downwind, velocity_deficit, normalized_wake_width, self.ambient_turbulence_intensity)
                 velocity_deficit *= meander.amplitude_meander
                 wake_width *= meander.width_meander
 
