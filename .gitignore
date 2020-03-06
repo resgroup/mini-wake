@@ -4,3 +4,7 @@
 .coverage
 coverage.xml
 test-output.xml
+
+build
+dist
+miniwake.egg-info
