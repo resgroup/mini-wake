@@ -22,7 +22,11 @@ class AndersonSimplifiedSolution:
     K1 = 0.015
     KAPPA = 0.40
 
-    def __init__(self, free_stream_velocity, thrust_coefficient, ambient_turbulence):
+    def __init__(
+            self,
+            free_stream_velocity,
+            thrust_coefficient,
+            ambient_turbulence):
         
         self.free_stream_velocity = free_stream_velocity
         self.thrust_coefficient = thrust_coefficient
@@ -56,7 +60,10 @@ class AndersonSimplifiedSolution:
     def b(self, velocity_deficit):
         return calculate_width(self.thrust_coefficient, velocity_deficit)
 
-    def epsilon(self, normalised_distance_downwind, center_line_velocity):
+    def epsilon(
+            self,
+            normalised_distance_downwind,
+            center_line_velocity):
 
         # eddy-viscosity (from Aimslie, 1988)
         
@@ -84,7 +91,10 @@ class AndersonSimplifiedSolution:
         # D = 1-Uc/U0
         return 1.0 - center_line_velocity / self.free_stream_velocity
 
-    def derivative_of_center_line_velocity_wrt_distance(self, normalised_distance_downwind, center_line_velocity):
+    def derivative_of_center_line_velocity_wrt_distance(
+            self,
+            normalised_distance_downwind,
+            center_line_velocity):
 
         # dUc / dx i.e. first derivative of center line velocity w.r.t. normalised distance downwind
         # simplified solution to the eddy viscosity model - 01327-000202 (from Anderson, 2009)
@@ -100,7 +110,10 @@ class AndersonSimplifiedSolution:
 
         return derivative
 
-    def __call__(self, normalised_distance_downwind, center_line_velocity):
+    def __call__(
+            self,
+            normalised_distance_downwind,
+            center_line_velocity):
 
         if len(center_line_velocity) != 1:
             raise Exception("One-dimensional y-argument expected")
@@ -112,7 +125,13 @@ class WakeDeficitIntegrator:
 
     MAXIMUM_DISTANCE_DOWNSTREAM = 1000.0
 
-    def __init__(self, thrust_coefficient, turbulence, maximum_distance_downstream=None, first_step=0.1, max_step=0.1):
+    def __init__(
+            self,
+            thrust_coefficient,
+            turbulence,
+            maximum_distance_downstream=None,
+            first_step=0.1,
+            max_step=0.1):
 
         if maximum_distance_downstream is None:
             maximum_distance_downstream = WakeDeficitIntegrator.MAXIMUM_DISTANCE_DOWNSTREAM
@@ -120,14 +139,18 @@ class WakeDeficitIntegrator:
         self.free_stream_velocity = 10.0 #initial velocity, arbitary assumption as later normalised
         self.maximum_distance_downstream = maximum_distance_downstream
 
-        self.f = AndersonSimplifiedSolution(self.free_stream_velocity, thrust_coefficient, turbulence)
+        self.f = AndersonSimplifiedSolution(
+            self.free_stream_velocity,
+            thrust_coefficient,
+            turbulence)
 
-        self.integrator = integrate.RK45(self.f,
-                                         t0=self.f.initial_normalised_distance_downstream,
-                                         y0=[self.f.initial_center_line_velocity],
-                                         t_bound=self.maximum_distance_downstream,
-                                         first_step=first_step,
-                                         max_step=max_step)
+        self.integrator = integrate.RK45(
+            self.f,
+            t0=self.f.initial_normalised_distance_downstream,
+            y0=[self.f.initial_center_line_velocity],
+            t_bound=self.maximum_distance_downstream,
+            first_step=first_step,
+            max_step=max_step)
 
         self.normalised_distance_downstream = self.f.initial_normalised_distance_downstream
         self.velocity_deficit = self.f.center_line_deficit(self.f.initial_center_line_velocity)
@@ -141,7 +164,10 @@ class WakeDeficitIntegrator:
         return (self.normalised_distance_downstream < self.maximum_distance_downstream)
 
 
-def calculate_velocity_deficit(thrust_coefficient, normalized_distance_downwind, turbulence):
+def calculate_velocity_deficit(
+        thrust_coefficient,
+        normalized_distance_downwind,
+        turbulence):
 
     normalized_distance_downwind = max([2.0, normalized_distance_downwind])
     thrust_coefficient = min([1.0, thrust_coefficient])
@@ -149,15 +175,19 @@ def calculate_velocity_deficit(thrust_coefficient, normalized_distance_downwind,
     return max([solve_velocity_deficit(thrust_coefficient, normalized_distance_downwind, turbulence), 0])
 
 
-def solve_velocity_deficit(thrust_coefficient, normalized_distance_downwind, turbulence):
+def solve_velocity_deficit(
+        thrust_coefficient,
+        normalized_distance_downwind,
+        turbulence):
 
     """Calculates center line velocity deficit with main solution on demand.
        This could be increased in speed by solving a lookup-table of values once and interpolating
     """
 
-    integrator = WakeDeficitIntegrator(thrust_coefficient=thrust_coefficient,
-                                        turbulence=turbulence,
-                                        maximum_distance_downstream=100.0)
+    integrator = WakeDeficitIntegrator(
+        thrust_coefficient=thrust_coefficient,
+        turbulence=turbulence,
+        maximum_distance_downstream=100.0)
 
     if normalized_distance_downwind <= integrator.normalised_distance_downstream:
         return integrator.velocity_deficit

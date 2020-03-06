@@ -17,7 +17,11 @@ class NoWake:
 
 class Wake:
 
-     def __init__(self, velocity_deficit, added_turbulence, wake_width):
+     def __init__(
+            self,
+            velocity_deficit,
+            added_turbulence,
+            wake_width):
         self.velocity_deficit = VelocityDeficitWakeProfile(velocity_deficit, wake_width)
         self.added_turbulence = AddedTurbulenceWakeProfile(added_turbulence, wake_width)
         self.width = wake_width
@@ -51,27 +55,29 @@ class SingleWake:
 
         NEAR_ZERO = 0.000001
 
-        def __init__(self,
-                     ambient_turbulence_intensity,
-                     upwind_diameter,
-                     upwind_thrust_coefficient,
-                     upwind_velocity,
-                     upwind_local_turbulence_intensity,
-                     upwind_rpm,
-                     upwind_number_of_blades=3,
-                     apply_meander=True):
+        def __init__(
+            self,
+            ambient_turbulence_intensity,
+            upwind_diameter,
+            upwind_thrust_coefficient,
+            upwind_velocity,
+            upwind_local_turbulence_intensity,
+            upwind_rpm,
+            upwind_number_of_blades=3,
+            apply_meander=True):
 
             self.ambient_turbulence_intensity = ambient_turbulence_intensity
             self.upwind_diameter = upwind_diameter
             self.upwind_thrust_coefficient = upwind_thrust_coefficient
             self.upwind_local_turbulence_intensity = upwind_local_turbulence_intensity
 
-            self.upwind_near_wake_length = calculate_near_wake_length(diameter=upwind_diameter,
-                                                                      thrust_coefficient=upwind_thrust_coefficient,
-                                                                      rpm=upwind_rpm,
-                                                                      number_of_blades=upwind_number_of_blades,
-                                                                      velocity=upwind_velocity,
-                                                                      turbulence_intensity=ambient_turbulence_intensity)
+            self.upwind_near_wake_length = calculate_near_wake_length(
+                diameter=upwind_diameter,
+                thrust_coefficient=upwind_thrust_coefficient,
+                rpm=upwind_rpm,
+                number_of_blades=upwind_number_of_blades,
+                velocity=upwind_velocity,
+                turbulence_intensity=ambient_turbulence_intensity)
 
             self.apply_meander = apply_meander
 
@@ -82,16 +88,28 @@ class SingleWake:
 
             normalized_distance_downwind = distance_downwind / self.upwind_diameter
 
-            velocity_deficit = calculate_velocity_deficit(self.upwind_thrust_coefficient, normalized_distance_downwind, self.upwind_local_turbulence_intensity)
+            velocity_deficit = calculate_velocity_deficit(
+                self.upwind_thrust_coefficient,
+                normalized_distance_downwind,
+                self.upwind_local_turbulence_intensity)
             normalized_wake_width = calculate_width(self.upwind_thrust_coefficient, velocity_deficit)
             wake_width = normalized_wake_width * self.upwind_diameter
 
             if self.apply_meander:
-                meander = calculate_meander(normalized_distance_downwind, velocity_deficit, normalized_wake_width, self.ambient_turbulence_intensity)
+                meander = calculate_meander(
+                    normalized_distance_downwind,
+                    velocity_deficit,
+                    normalized_wake_width,
+                    self.ambient_turbulence_intensity)
                 velocity_deficit *= meander.amplitude_meander
                 wake_width *= meander.width_meander
 
-            added_turbulence = quarton_added_turbulence(distance_downwind, self.upwind_thrust_coefficient, self.upwind_diameter, self.upwind_near_wake_length, self.ambient_turbulence_intensity)
+            added_turbulence = quarton_added_turbulence(
+                distance_downwind,
+                self.upwind_thrust_coefficient,
+                self.upwind_diameter,
+                self.upwind_near_wake_length,
+                self.ambient_turbulence_intensity)
 
             return Wake(velocity_deficit, added_turbulence, wake_width)
 

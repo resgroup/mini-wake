@@ -12,13 +12,14 @@ def test_single_wake():
     amient_turbulence_intensity = 0.1
     upwind_local_turbulence_intensity = amient_turbulence_intensity
 
-    single_wake = SingleWake(ambient_turbulence_intensity=amient_turbulence_intensity,
-                             upwind_diameter=upwind_diameter,
-                             upwind_thrust_coefficient=upwind_thrust_coefficient,
-                             upwind_velocity=upwind_velocity,
-                             upwind_local_turbulence_intensity=upwind_local_turbulence_intensity,
-                             upwind_rpm=upwind_rpm,
-                             apply_meander=False)
+    single_wake = SingleWake(
+        ambient_turbulence_intensity=amient_turbulence_intensity,
+        upwind_diameter=upwind_diameter,
+        upwind_thrust_coefficient=upwind_thrust_coefficient,
+        upwind_velocity=upwind_velocity,
+        upwind_local_turbulence_intensity=upwind_local_turbulence_intensity,
+        upwind_rpm=upwind_rpm,
+        apply_meander=False)
 
     assert single_wake.upwind_near_wake_length == pytest.approx(149.4116199)
 

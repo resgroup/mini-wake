@@ -27,7 +27,9 @@ def calculate_flow_field_ratio(thrust_coefficient):
         return 1.0 / math.sqrt(1.0 - thrust_coefficient)
 
 
-def calculate_mechanical_turbulence_wake_erosion_rate(number_of_blades, tip_speed_ratio):
+def calculate_mechanical_turbulence_wake_erosion_rate(
+        number_of_blades,
+        tip_speed_ratio):
     return 0.012 * number_of_blades * tip_speed_ratio
 
 def calculate_n(flow_field_ratio):
@@ -43,7 +45,9 @@ def calculate_n(flow_field_ratio):
     return c1 * (1.0 - c2) / ((1.0 - c1) * c2)
 
 
-def calculate_radius_of_inviscid_expanded_rotor_disk(diameter, flow_field_ratio):
+def calculate_radius_of_inviscid_expanded_rotor_disk(
+        diameter,
+        flow_field_ratio):
 
     # ref Equation 9 in Vermeulen 1980
     radius = 0.5 * diameter
@@ -55,11 +59,16 @@ def calculate_shear_generated_turbulence_wake_erosion_rate(flow_field_ratio):
     return (1.0 - flow_field_ratio) * math.sqrt(1.49 + flow_field_ratio) / (9.76 * (1.0 + flow_field_ratio))
 
 
-def calculate_tip_speed_ratio(angular_velocity, radius, velocity):
+def calculate_tip_speed_ratio(
+        angular_velocity,
+        radius, velocity):
     return (angular_velocity * radius) / velocity
 
 
-def calculate_total_wake_erosion_rate(ambient_turbulence_wake_erosion_rate, shear_generated_turbulence_wake_erosion_rate, mechanical_turbulence_wake_erosion_rate):
+def calculate_total_wake_erosion_rate(
+        ambient_turbulence_wake_erosion_rate,
+        shear_generated_turbulence_wake_erosion_rate,
+        mechanical_turbulence_wake_erosion_rate):
     return math.sqrt(ambient_turbulence_wake_erosion_rate ** 2.0 + shear_generated_turbulence_wake_erosion_rate ** 2.0 + mechanical_turbulence_wake_erosion_rate ** 2.0)
 
 
@@ -67,7 +76,13 @@ def calculate_radius(diameter):
     return diameter * 0.5
 
 
-def calculate_near_wake_length(diameter, thrust_coefficient, rpm, number_of_blades, velocity, turbulence_intensity):
+def calculate_near_wake_length(
+        diameter,
+        thrust_coefficient,
+        rpm,
+        number_of_blades,
+        velocity,
+        turbulence_intensity):
 
     # The near wake length is the distance after which the potential core is completely eroded
 
@@ -75,6 +90,7 @@ def calculate_near_wake_length(diameter, thrust_coefficient, rpm, number_of_blad
     tip_speed_ratio = calculate_tip_speed_ratio(calculate_angular_velocity(rpm), calculate_radius(diameter), velocity)
 
     return calculate_n(flow_field_ratio) * calculate_radius_of_inviscid_expanded_rotor_disk(diameter, flow_field_ratio) \
-           / calculate_total_wake_erosion_rate(calculate_ambient_turbulence_wake_erosion_rate(turbulence_intensity),
-                                               calculate_shear_generated_turbulence_wake_erosion_rate(flow_field_ratio),
-                                               calculate_mechanical_turbulence_wake_erosion_rate(number_of_blades, tip_speed_ratio))
+           / calculate_total_wake_erosion_rate(
+                calculate_ambient_turbulence_wake_erosion_rate(turbulence_intensity),
+                calculate_shear_generated_turbulence_wake_erosion_rate(flow_field_ratio),
+                calculate_mechanical_turbulence_wake_erosion_rate(number_of_blades, tip_speed_ratio))
