@@ -1,9 +1,9 @@
 import pytest
 import math
 
-from velocity_deficit import calculate_velocity_deficit
-from velocity_deficit import calculate_shape
-from velocity_deficit import calculate_width
+from miniwake.velocity_deficit import calculate_velocity_deficit
+from miniwake.velocity_deficit import calculate_shape
+from miniwake.velocity_deficit import calculate_width
 
 
 def test_calculate_velocity_deficit():

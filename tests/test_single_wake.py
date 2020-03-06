@@ -1,6 +1,6 @@
 import pytest
 
-from single_wake import SingleWake
+from miniwake.single_wake import SingleWake
 
 
 def test_single_wake():

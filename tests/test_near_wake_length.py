@@ -1,12 +1,12 @@
 import pytest
 
-from near_wake_length import calculate_ambient_turbulence_wake_erosion_rate
-from near_wake_length import calculate_angular_velocity
-from near_wake_length import calculate_flow_field_ratio
-from near_wake_length import calculate_mechanical_turbulence_wake_erosion_rate
-from near_wake_length import calculate_n
-from near_wake_length import calculate_radius_of_inviscid_expanded_rotor_disk
-from near_wake_length import calculate_near_wake_length
+from miniwake.near_wake_length import calculate_ambient_turbulence_wake_erosion_rate
+from miniwake.near_wake_length import calculate_angular_velocity
+from miniwake.near_wake_length import calculate_flow_field_ratio
+from miniwake.near_wake_length import calculate_mechanical_turbulence_wake_erosion_rate
+from miniwake.near_wake_length import calculate_n
+from miniwake.near_wake_length import calculate_radius_of_inviscid_expanded_rotor_disk
+from miniwake.near_wake_length import calculate_near_wake_length
 
 def test_calculate_ambient_turbulence_wake_erosion_rate():
 	ambientTurbuluence = 0.1

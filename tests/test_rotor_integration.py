@@ -1,6 +1,6 @@
 import pytest
 
-from rotor_integration import EffectiveRadiusIntegrator
+from miniwake.rotor_integration import EffectiveRadiusIntegrator
 
 def one(radius, theta):
     return 1.0
