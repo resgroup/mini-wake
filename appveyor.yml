@@ -22,7 +22,7 @@ build_script:
   - python setup.py sdist bdist_wheel
 
 test_script:
-  - pytest --cov=./
+  - pytest --cov=./ --junitxml=test-output.xml
 
 on_finish:
   - codecov
