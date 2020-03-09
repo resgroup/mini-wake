@@ -3,7 +3,9 @@ image:
 
 environment:
   pypi-token:
-    secure: ysv4opRvqiJ4cKX7VBun/Kcunr+ltCylSP0z5X/+1AQqNgghRx7DHw64uxm9gXdWERToF6JtFaRIXf/Kg6F+uA46wT7WxRenjTrd/j5dsW/D/mjMaq8PTP+lHcz7tsaAM2wIO8kphvUqNcSnfkscTVKqtpm2GXEy5f0dQmDOWqf03mXPad3WhwfLsI49mjozD/3TWhZCS0MXbu8Tmt0xwRZJEKuiorTb7Bgfo2+ICI0+5OwOgCGjjEvjKUQfnsdqNrFDSzjKsz7jiL/9oimogQ==  MINICONDA: C:\Miniconda3
+    secure: ysv4opRvqiJ4cKX7VBun/Kcunr+ltCylSP0z5X/+1AQqNgghRx7DHw64uxm9gXdWERToF6JtFaRIXf/Kg6F+uA46wT7WxRenjTrd/j5dsW/D/mjMaq8PTP+lHcz7tsaAM2wIO8kphvUqNcSnfkscTVKqtpm2GXEy5f0dQmDOWqf03mXPad3WhwfLsI49mjozD/3TWhZCS0MXbu8Tmt0xwRZJEKuiorTb7Bgfo2+ICI0+5OwOgCGjjEvjKUQfnsdqNrFDSzjKsz7jiL/9oimogQ==
+  MINICONDA: C:\Miniconda3
+
 install:
   # Get Miniconda and make it the main Python interpreter
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
