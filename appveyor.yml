@@ -2,7 +2,7 @@ image:
   - Ubuntu
 
 environment:
-  pypi-token:
+  pypitoken:
     secure: ysv4opRvqiJ4cKX7VBun/Kcunr+ltCylSP0z5X/+1AQqNgghRx7DHw64uxm9gXdWERToF6JtFaRIXf/Kg6F+uA46wT7WxRenjTrd/j5dsW/D/mjMaq8PTP+lHcz7tsaAM2wIO8kphvUqNcSnfkscTVKqtpm2GXEy5f0dQmDOWqf03mXPad3WhwfLsI49mjozD/3TWhZCS0MXbu8Tmt0xwRZJEKuiorTb7Bgfo2+ICI0+5OwOgCGjjEvjKUQfnsdqNrFDSzjKsz7jiL/9oimogQ==
   MINICONDA: C:\Miniconda3
 
@@ -26,7 +26,6 @@ test_script:
 
 on_finish:
   - codecov
-  - cat coverage.xml
   - sh: |
       find "$APPVEYOR_BUILD_FOLDER" -type f -name 'test-output.xml' -print0 | xargs -0 -I '{}' curl -F 'file=@{}' "https://ci.appveyor.com/api/testresults/junit/$APPVEYOR_JOB_ID"
 
@@ -52,5 +51,5 @@ for:
       - master
 
   deploy_script:
-    - python -m twine upload -u __token__ -p ${Env:pypi-token} --repository-url https://test.pypi.org/legacy/ --skip-existing dist/*
+    - python -m twine upload -u __token__ -p ${pypitoken} --repository-url https://test.pypi.org/legacy/ --skip-existing dist/*
 
