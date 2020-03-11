@@ -15,13 +15,13 @@ def distance(delta_x, delta_y):
 class NoWake:
 
     def velocity_deficit(self,
-                         horizontal_distance_from_wake_center,
-                         vertical_distance_from_wake_center):
+                         lateral_distance,
+                         vertical_distance):
         return 0.0
 
     def added_turbulence(self,
-                         horizontal_distance_from_wake_center,
-                         vertical_distance_from_wake_center):
+                         lateral_distance,
+                         vertical_distance):
         return 0.0
 
 
@@ -32,6 +32,7 @@ class Wake:
             velocity_deficit,
             added_turbulence,
             wake_width):
+
         self.velocity_deficit = VelocityDeficitWakeProfile(velocity_deficit, wake_width)
         self.added_turbulence = AddedTurbulenceWakeProfile(added_turbulence, wake_width)
         self.width = wake_width
@@ -44,11 +45,11 @@ class AddedTurbulenceWakeProfile:
         self.wake_width = wake_width
 
     def __call__(self,
-                 horizontal_distance_from_wake_center,
-                 vertical_distance_from_wake_center=0.0):
+                 lateral_distance,
+                 vertical_distance=0.0):
 
-        distance_from_wake_center = distance(horizontal_distance_from_wake_center,
-                                             vertical_distance_from_wake_center)
+        distance_from_wake_center = distance(lateral_distance,
+                                             vertical_distance)
 
         if abs(distance_from_wake_center) < self.wake_width:
             return self.added_turbulence
@@ -63,11 +64,11 @@ class VelocityDeficitWakeProfile:
         self.wake_width = wake_width
 
     def __call__(self,
-                horizontal_distance_from_wake_center,
-                vertical_distance_from_wake_center=0.0):
+                lateral_distance,
+                vertical_distance=0.0):
         
-        distance_from_wake_center = distance(horizontal_distance_from_wake_center,
-                                             vertical_distance_from_wake_center)
+        distance_from_wake_center = distance(lateral_distance,
+                                             vertical_distance)
 
         return calculate_shape(distance_from_wake_center / self.wake_width) * self.velocity_deficit
 
@@ -79,24 +80,21 @@ class SingleWake:
         def __init__(
             self,
             ambient_turbulence_intensity,
-            upwind_diameter,
-            upwind_thrust_coefficient,
+            upwind_turbine,
             upwind_velocity,
             upwind_local_turbulence_intensity,
-            upwind_rpm,
-            upwind_number_of_blades=3,
             apply_meander=True):
 
             self.ambient_turbulence_intensity = ambient_turbulence_intensity
-            self.upwind_diameter = upwind_diameter
-            self.upwind_thrust_coefficient = upwind_thrust_coefficient
+            self.upwind_diameter = upwind_turbine.diameter
+            self.upwind_thrust_coefficient = upwind_turbine.thrust_curve(upwind_velocity)
             self.upwind_local_turbulence_intensity = upwind_local_turbulence_intensity
 
             self.upwind_near_wake_length = calculate_near_wake_length(
-                diameter=upwind_diameter,
-                thrust_coefficient=upwind_thrust_coefficient,
-                rpm=upwind_rpm,
-                number_of_blades=upwind_number_of_blades,
+                diameter=self.upwind_diameter,
+                thrust_coefficient=self.upwind_thrust_coefficient,
+                rpm=upwind_turbine.rotational_speed_rpm,
+                number_of_blades=upwind_turbine.number_of_blades,
                 velocity=upwind_velocity,
                 turbulence_intensity=ambient_turbulence_intensity)
 
