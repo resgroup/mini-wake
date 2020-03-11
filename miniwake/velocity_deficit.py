@@ -6,7 +6,8 @@ import math
 
 
 def calculate_shape(normalized_position):
-    if abs(normalized_position) > 1.0:
+    if abs(normalized_position) > 2.0:
+        # shape factor is less than 0.0001% beyond 2.0
         return 0.0
     else:
         return math.exp(-3.56 * (normalized_position ** 2.0))
