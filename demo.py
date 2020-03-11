@@ -5,7 +5,11 @@ from miniwake.turbine import FixedThrustCurve
 import numpy as np
 import matplotlib.pyplot as plt
 
-upwind_turbine = Turbine(diameter=76.0, rotational_speed_rpm=17.0, thrust_curve=FixedThrustCurve(0.4))
+upwind_turbine = Turbine(x=0.0,
+                            y=0.0,
+                            diameter=76.0,
+                            rotational_speed_rpm=17.0,
+                            thrust_curve=FixedThrustCurve(0.4))
 
 upwind_velocity = 9.
 amient_turbulence_intensity = 0.1
