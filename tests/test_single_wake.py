@@ -27,9 +27,9 @@ def test_single_wake():
 
     assert wake.width == pytest.approx(71.20098095, abs=0.05)
 
-    assert wake.velocity_deficit(0.0) == pytest.approx(0.229031, abs=0.0005)
-    assert wake.velocity_deficit(28.5) == pytest.approx(0.129473057, abs=0.0005)
+    assert wake.velocity_deficit(0.0, 0.0) == pytest.approx(0.229031, abs=0.0005)
+    assert wake.velocity_deficit(28.5, 0.0) == pytest.approx(0.129473057, abs=0.0005)
 
-    assert wake.added_turbulence(0.0) == pytest.approx(0.080722728)
-    assert wake.added_turbulence(28.5) == pytest.approx(0.080722728)
+    assert wake.added_turbulence(0.0, 0.0) == pytest.approx(0.080722728)
+    assert wake.added_turbulence(28.5, 0.0) == pytest.approx(0.080722728)
 

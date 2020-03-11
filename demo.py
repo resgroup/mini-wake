@@ -27,8 +27,8 @@ yt = []
 for normalised_distance in np.linspace(-2.0, 2.0, num=100):
     distance = normalised_distance * upwind_diameter
     x.append(normalised_distance)
-    yv.append(wake.velocity_deficit(distance_from_wake_center=distance))
-    yt.append(wake.added_turbulence(distance_from_wake_center=distance))
+    yv.append(wake.velocity_deficit(horizontal_distance_from_wake_center=distance))
+    yt.append(wake.added_turbulence(horizontal_distance_from_wake_center=distance))
 
 plt.scatter(x, yv, s=20, marker='o')
 plt.scatter(x, yt, s=20, marker='^')

@@ -1,3 +1,5 @@
+import math
+
 from .velocity_deficit import calculate_shape
 from .velocity_deficit import calculate_width
 from .velocity_deficit import calculate_velocity_deficit
@@ -6,12 +8,20 @@ from .meander import calculate_meander
 from .near_wake_length import calculate_near_wake_length
 
 
+def distance(delta_x, delta_y):
+    return math.sqrt(delta_x * delta_x + delta_y * delta_y)
+
+
 class NoWake:
 
-    def velocity_deficit(self, distance_from_wake_center):
+    def velocity_deficit(self,
+                         horizontal_distance_from_wake_center,
+                         vertical_distance_from_wake_center):
         return 0.0
 
-    def added_turbulence(self, distance_from_wake_center):
+    def added_turbulence(self,
+                         horizontal_distance_from_wake_center,
+                         vertical_distance_from_wake_center):
         return 0.0
 
 
@@ -33,7 +43,12 @@ class AddedTurbulenceWakeProfile:
         self.added_turbulence = added_turbulence
         self.wake_width = wake_width
 
-    def __call__(self, distance_from_wake_center):
+    def __call__(self,
+                 horizontal_distance_from_wake_center,
+                 vertical_distance_from_wake_center=0.0):
+
+        distance_from_wake_center = distance(horizontal_distance_from_wake_center,
+                                             vertical_distance_from_wake_center)
 
         if abs(distance_from_wake_center) < self.wake_width:
             return self.added_turbulence
@@ -47,7 +62,13 @@ class VelocityDeficitWakeProfile:
         self.velocity_deficit = velocity_deficit
         self.wake_width = wake_width
 
-    def __call__(self, distance_from_wake_center):
+    def __call__(self,
+                horizontal_distance_from_wake_center,
+                vertical_distance_from_wake_center=0.0):
+        
+        distance_from_wake_center = distance(horizontal_distance_from_wake_center,
+                                             vertical_distance_from_wake_center)
+
         return calculate_shape(distance_from_wake_center / self.wake_width) * self.velocity_deficit
 
 
