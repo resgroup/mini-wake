@@ -88,6 +88,13 @@ class SingleWake:
             self.upwind_turbine = upwind_turbine
             self.ambient_turbulence_intensity = ambient_turbulence_intensity
             self.upwind_thrust_coefficient = upwind_turbine.thrust_curve(upwind_velocity)
+
+            if self.upwind_thrust_coefficient < 0.0:
+                raise Exception("Thrust coefficient cannot be less than 0")
+
+            if self.upwind_thrust_coefficient > 1.0:
+                raise Exception("Thrust coefficient cannot be greater than 1")
+
             self.upwind_local_turbulence_intensity = upwind_local_turbulence_intensity
 
             self.upwind_near_wake_length = calculate_near_wake_length(

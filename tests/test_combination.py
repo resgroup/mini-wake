@@ -23,6 +23,9 @@ def test_velicity_deficit_combination():
 
 def test_combined_wake():
 
+    upwind_velocity = 9.5
+    amient_turbulence_intensity = 0.1
+
     upwind_turbine = Turbine(
         x=0.0,
         y=0.0,
@@ -40,8 +43,6 @@ def test_combined_wake():
         rotational_speed_rpm=17.0,
         thrust_curve=FixedThrustCurve(0.4))
 
-    upwind_velocity = 9.5
-    amient_turbulence_intensity = 0.1
     upwind_local_turbulence_intensity = amient_turbulence_intensity
 
     upwind_wake = SingleWake(
@@ -51,7 +52,9 @@ def test_combined_wake():
         upwind_local_turbulence_intensity=upwind_local_turbulence_intensity,
         apply_meander=False)
 
-    combined_wake = CombinedWake(downwind_turbine)
+    combined_wake = CombinedWake(
+        downwind_turbine,
+        amient_turbulence_intensity)
 
     combined_wake.add_wake(upwind_wake)
 

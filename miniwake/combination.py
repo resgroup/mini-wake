@@ -55,8 +55,9 @@ class AddedTurbulenceCombiner:
 
 class CombinedWake:
 
-    def __init__(self, downwind_turbine):
+    def __init__(self, downwind_turbine, ambient_turbulence):
 
+        self.ambient_turbulence = ambient_turbulence
         self.downwind_turbine = downwind_turbine
 
         self.combined_velocity_deficit = VelocityDeficitCombiner()
@@ -101,3 +102,11 @@ class CombinedWake:
     @property
     def added_turbulence(self):
         return self.combined_added_turbulence.combined_value
+
+    @property
+    def local_turbulence(self):
+
+        added_turbulence = self.added_turbulence
+
+        return math.sqrt(added_turbulence * added_turbulence
+                         + self.ambient_turbulence * self.ambient_turbulence)
