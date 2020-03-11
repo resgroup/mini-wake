@@ -9,6 +9,7 @@ def test_single_wake():
 
     upwind_turbine = Turbine(x=0.0,
                              y=0.0,
+                             hub_height=80.0,
                              diameter=76.0,
                              rotational_speed_rpm=17.0,
                              thrust_curve=FixedThrustCurve(0.4))

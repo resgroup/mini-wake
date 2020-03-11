@@ -12,7 +12,7 @@ def distance(delta_x, delta_y):
     return math.sqrt(delta_x * delta_x + delta_y * delta_y)
 
 
-class NoWake:
+class NoWakeCrossSection:
 
     def velocity_deficit(self,
                          lateral_distance,
@@ -25,7 +25,7 @@ class NoWake:
         return 0.0
 
 
-class Wake:
+class WakeCrossSection:
 
      def __init__(
             self,
@@ -85,13 +85,13 @@ class SingleWake:
             upwind_local_turbulence_intensity,
             apply_meander=True):
 
+            self.upwind_turbine = upwind_turbine
             self.ambient_turbulence_intensity = ambient_turbulence_intensity
-            self.upwind_diameter = upwind_turbine.diameter
             self.upwind_thrust_coefficient = upwind_turbine.thrust_curve(upwind_velocity)
             self.upwind_local_turbulence_intensity = upwind_local_turbulence_intensity
 
             self.upwind_near_wake_length = calculate_near_wake_length(
-                diameter=self.upwind_diameter,
+                diameter=upwind_turbine.diameter,
                 thrust_coefficient=self.upwind_thrust_coefficient,
                 rpm=upwind_turbine.rotational_speed_rpm,
                 number_of_blades=upwind_turbine.number_of_blades,
@@ -102,17 +102,23 @@ class SingleWake:
 
         def calculate(self, distance_downwind):
 
-            if self.is_negligible(self.upwind_thrust_coefficient) or self.is_negligible(self.upwind_diameter):
-                return NoWake()
+            if distance_downwind < 0.0 or \
+               self.is_negligible(self.upwind_thrust_coefficient) or \
+               self.is_negligible(self.upwind_turbine.diameter):
+                return NoWakeCrossSection()
 
-            normalized_distance_downwind = distance_downwind / self.upwind_diameter
+            if distance_downwind <= 0:
+                raise Exception("Distance downwind must be a positive number")
+
+            normalized_distance_downwind = distance_downwind / self.upwind_turbine.diameter
 
             velocity_deficit = calculate_velocity_deficit(
                 self.upwind_thrust_coefficient,
                 normalized_distance_downwind,
                 self.upwind_local_turbulence_intensity)
+
             normalized_wake_width = calculate_width(self.upwind_thrust_coefficient, velocity_deficit)
-            wake_width = normalized_wake_width * self.upwind_diameter
+            wake_width = normalized_wake_width * self.upwind_turbine.diameter
 
             if self.apply_meander:
                 meander = calculate_meander(
@@ -126,11 +132,11 @@ class SingleWake:
             added_turbulence = quarton_added_turbulence(
                 distance_downwind,
                 self.upwind_thrust_coefficient,
-                self.upwind_diameter,
+                self.upwind_turbine.diameter,
                 self.upwind_near_wake_length,
                 self.ambient_turbulence_intensity)
 
-            return Wake(velocity_deficit, added_turbulence, wake_width)
+            return WakeCrossSection(velocity_deficit, added_turbulence, wake_width)
 
         def is_negligible(self, value):
             return value < SingleWake.NEAR_ZERO
