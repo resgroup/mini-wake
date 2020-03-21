@@ -103,20 +103,37 @@ class WakeAtRotorCenter:
 
         return (self.lateral_distance + lateral_offset) / self.upwind_diameter
 
+
+class WakeResult:
+
+    def __init__(
+                self,
+                waked_velocity,
+                waked_turbulence,
+                thrust_coefficient
+    ):
+
+        self.waked_velocity = waked_velocity
+        self.waked_turbulence = waked_turbulence
+        self.thrust_coefficient = thrust_coefficient
+
+
 class CombinedWake:
 
     def __init__(
                 self,
                 downwind_turbine,
+                ambient_velocity,
                 ambient_turbulence,
-                velocoity_deficit_integrator=VelocityDeficitIntegrator(),
+                velocity_deficit_integrator=VelocityDeficitIntegrator(),
                 added_turbulence_integrator=AddedTurbulenceIntegrator()
                 ):
 
+        self.ambient_velocity = ambient_velocity
         self.ambient_turbulence = ambient_turbulence
         self.downwind_turbine = downwind_turbine
 
-        self.velocity_deficit_integrator = velocoity_deficit_integrator
+        self.velocity_deficit_integrator = velocity_deficit_integrator
         self.added_turbulence_integrator = added_turbulence_integrator
 
         self.wakes = []
@@ -175,17 +192,19 @@ class CombinedWake:
 
         return combined.combined_value
 
-    def combined_velocity_deficit(self):
+    def combine_and_integrate(self):
 
-        return self.velocity_deficit_integrator.calculate(
-            self.downwind_turbine.diameter,
-            self.velocity_deficit_at_offset)
-
-    def combined_local_turbulence(self):
+        velocity_deficit = self.velocity_deficit_integrator.calculate(
+                                self.downwind_turbine.diameter,
+                                self.velocity_deficit_at_offset)
+        
+        waked_velocity = (1.0 - velocity_deficit) * self.ambient_velocity
 
         added_turbulence = self.added_turbulence_integrator.calculate(
                             self.downwind_turbine.diameter,
                             self.added_turbulence_at_offset)
 
-        return math.sqrt(added_turbulence * added_turbulence
-                         + self.ambient_turbulence * self.ambient_turbulence)
+        waked_turbulence = math.sqrt(added_turbulence * added_turbulence
+                                     + self.ambient_turbulence * self.ambient_turbulence)
+
+        return WakeResult(waked_velocity, waked_turbulence, None)
