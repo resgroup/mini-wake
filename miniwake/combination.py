@@ -1,7 +1,7 @@
 import math
 from .rotor_integration import VelocityDeficitIntegrator
 from .rotor_integration import AddedTurbulenceIntegrator
-
+from .single_wake import SingleWake
 
 class NumberOfImpactiveWakesCalculator:
 
@@ -110,12 +110,12 @@ class WakeResult:
                 self,
                 waked_velocity,
                 waked_turbulence,
-                thrust_coefficient
+                next_wake
     ):
 
         self.waked_velocity = waked_velocity
         self.waked_turbulence = waked_turbulence
-        self.thrust_coefficient = thrust_coefficient
+        self.next_wake = next_wake
 
 
 class CombinedWake:
@@ -207,4 +207,12 @@ class CombinedWake:
         waked_turbulence = math.sqrt(added_turbulence * added_turbulence
                                      + self.ambient_turbulence * self.ambient_turbulence)
 
-        return WakeResult(waked_velocity, waked_turbulence, None)
+        next_wake = SingleWake(
+                            ambient_turbulence_intensity=self.ambient_turbulence,
+                            upwind_turbine=self.downwind_turbine,
+                            upwind_velocity=waked_velocity,
+                            upwind_local_turbulence_intensity=waked_turbulence,
+                            apply_meander=True)
+
+        #could calculate SingleWake of turbine here
+        return WakeResult(waked_velocity, waked_turbulence, next_wake)
