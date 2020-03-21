@@ -3,6 +3,17 @@ from .rotor_integration import VelocityDeficitIntegrator
 from .rotor_integration import AddedTurbulenceIntegrator
 
 
+class NumberOfImpactiveWakesCalculator:
+
+    def __init__(self, threshold=0.02):
+        self.count = 0
+        self.threshold = threshold
+
+    def add(self, velocity_deficit):
+        if velocity_deficit > self.threshold:
+            self.count += 1
+
+
 class VelocityDeficitCombiner:
 
     # RSS and Maximum Auto WC method - based on unpublished work of Mike Anderson
@@ -11,11 +22,14 @@ class VelocityDeficitCombiner:
         self.far_combination_total = 0.0
         self.near_combination_maximum = 0.0
         self.closest_normalised_distance_upwind = float('inf')
+        self.impactive_wakes = NumberOfImpactiveWakesCalculator()
 
     def add(self, value, normalised_distance_upwind, normalised_lateral_distance):
 
         if value <= 0.0:
             return
+
+        self.impactive_wakes.add(value)
 
         self.far_combination_total += value * value
         self.near_combination_maximum = max([value, self.near_combination_maximum])
@@ -31,6 +45,10 @@ class VelocityDeficitCombiner:
             return self.near_combination_maximum
         else:
             return math.sqrt(self.far_combination_total)
+
+    @property
+    def number_of_impactive_wakes(self):
+        self.impactive_wakes.count
 
 
 class AddedTurbulenceCombiner:
@@ -66,6 +84,24 @@ class WakeAtRotorCenter:
         self.lateral_distance = lateral_distance
         self.vertical_distance = vertical_distance
 
+        self.upwind_diameter = cross_section.upwind_diameter
+        self.normalised_distance_downwind = cross_section.normalised_distance_downwind
+
+    def velocity_deficit(self, lateral_offset, vertical_offset):
+
+        return self.cross_section.velocity_deficit(
+                self.lateral_distance + lateral_offset,
+                self.vertical_distance + vertical_offset)
+
+    def added_turbulence(self, lateral_offset, vertical_offset):
+
+        return self.cross_section.added_turbulence(
+                self.lateral_distance + lateral_offset,
+                self.vertical_distance + vertical_offset)
+
+    def normalised_lateral_distance(self, lateral_offset):
+
+        return (self.lateral_distance + lateral_offset) / self.upwind_diameter
 
 class CombinedWake:
 
@@ -114,20 +150,14 @@ class CombinedWake:
 
         for wake in self.wakes:
 
-            lateral_distance = wake.lateral_distance + lateral_offset
-            vertical_distance = wake.vertical_distance + vertical_offset
+            velocity_deficit = wake.velocity_deficit(
+                lateral_offset,
+                vertical_offset)
 
-            velocity_deficit = wake.cross_section.velocity_deficit(
-                lateral_distance,
-                vertical_distance)
-
-            normalised_lateral_distance = lateral_distance / wake.cross_section.upwind_diameter
-
-            # check here
             combined.add(
                 velocity_deficit,
-                wake.cross_section.normalised_distance_downwind,
-                normalised_lateral_distance)
+                wake.normalised_distance_downwind,
+                wake.normalised_lateral_distance(lateral_offset))
 
         return combined.combined_value
 
@@ -137,13 +167,10 @@ class CombinedWake:
 
         for wake in self.wakes:
 
-            lateral_distance = wake.lateral_distance + lateral_offset
-            vertical_distance = wake.vertical_distance + vertical_offset
-
             combined.add(
-                wake.cross_section.added_turbulence(
-                        lateral_distance,
-                        vertical_distance)
+                wake.added_turbulence(
+                        lateral_offset,
+                        vertical_offset)
             )
 
         return combined.combined_value
