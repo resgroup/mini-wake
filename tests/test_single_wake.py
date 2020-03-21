@@ -25,7 +25,7 @@ def test_single_wake():
         upwind_local_turbulence_intensity=upwind_local_turbulence_intensity,
         apply_meander=False)
 
-    assert single_wake.upwind_near_wake_length == pytest.approx(149.4116199)
+    assert single_wake.near_wake_length == pytest.approx(149.4116199)
 
     wake = single_wake.calculate(upwind_turbine.diameter * 4.0)
 

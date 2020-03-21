@@ -3,27 +3,33 @@ import math
 
 class VelocityDeficitIntegrator:
 
-    NUMBER_OF_SECTIONS = 12
+    def __init__(self, number_of_sections=12):
+
+        self.number_of_sections = number_of_sections
+        self.one_over_sections = 1.0 / float(self.number_of_sections)
+
+        self.theta_step = 2.0 * math.pi * self.one_over_sections
+
+        self.effective_faction = 0.75 * 0.5
 
     def calculate(self,
-                  lateral_distance_from_wake_center,
-                  vertical_distance_from_wake_center,
                   downwind_rotor_diameter,
-                  wake_function):
+                  wake_integral):
 
-        effective_radius = 0.75 * 0.5 * downwind_rotor_diameter
+        effective_radius = self.effective_faction * downwind_rotor_diameter
 
         combined_value = 0.0
-        theta_step = 2.0 * math.pi / float(VelocityDeficitIntegrator.NUMBER_OF_SECTIONS)
 
-        for i in range(VelocityDeficitIntegrator.NUMBER_OF_SECTIONS):
+        for i in range(self.number_of_sections):
 
-            theta = i * theta_step
+            theta = i * self.theta_step
 
-            lateral_distance = math.sin(theta) * effective_radius + lateral_distance_from_wake_center
-            vertical_distance = math.sin(theta) * effective_radius + vertical_distance_from_wake_center
+            lateral_offset = math.sin(theta) * effective_radius
+            vertical_offset = math.sin(theta) * effective_radius
 
-            combined_value = self.add_value(combined_value, wake_function(lateral_distance, vertical_distance))
+            combined_value = self.add_value(
+                                combined_value,
+                                wake_integral(lateral_offset, vertical_offset))
 
         return self.finalise(combined_value)
 
@@ -31,7 +37,7 @@ class VelocityDeficitIntegrator:
         return combined_value + value
 
     def finalise(self, combined_value):
-        return combined_value / float(VelocityDeficitIntegrator.NUMBER_OF_SECTIONS)
+        return combined_value * self.one_over_sections
 
 
 class AddedTurbulenceIntegrator(VelocityDeficitIntegrator):
