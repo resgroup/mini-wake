@@ -24,6 +24,7 @@ def test_two_turbines_second_turbine_one_diameter_downwind():
     direction = 270.0
 
     upwind_turbine = Turbine(
+        name="T1",
         x=0.0,
         y=0.0,
         hub_height=80.0,
@@ -32,6 +33,7 @@ def test_two_turbines_second_turbine_one_diameter_downwind():
         thrust_curve=FixedThrustCurve(0.4))
 
     downwind_turbine = Turbine(
+        name="T2",
         x=upwind_turbine.diameter,
         y=0.0,
         hub_height=80.0,

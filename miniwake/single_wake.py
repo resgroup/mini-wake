@@ -102,6 +102,8 @@ class SingleWake:
 
             self.upwind_turbine = upwind_turbine
             self.ambient_turbulence_intensity = ambient_turbulence_intensity
+
+            # todo check if density correction needed here
             self.upwind_thrust_coefficient = upwind_turbine.thrust_curve(upwind_velocity)
 
             if self.upwind_thrust_coefficient < 0.0:

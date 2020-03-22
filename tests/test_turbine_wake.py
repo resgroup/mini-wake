@@ -22,6 +22,7 @@ def test_combined_wake_diameter():
     ambient_turbulence = 0.1
     
     upwind_turbine = Turbine(
+        name="T1",
         x=0.0,
         y=0.0,
         hub_height=80.0,
@@ -30,6 +31,7 @@ def test_combined_wake_diameter():
         thrust_curve=FixedThrustCurve(0.4))
 
     downwind_turbine = Turbine(
+        name="T2",
         x=upwind_turbine.diameter * 4.0,
         y=0.0,
         hub_height=80.0,
@@ -44,7 +46,7 @@ def test_combined_wake_diameter():
         apply_meander=apply_meander)
 
     upwind_wake.calculate()
-    
+
     downwind_wake = TurbineWake(
         downwind_turbine,
         ambient_velocity,
@@ -67,6 +69,7 @@ def test_combined_wake_one_diameter_downwind():
     ambient_turbulence_intensity = 0.1
 
     upwind_turbine = Turbine(
+        name="T1",
         x=0.0,
         y=0.0,
         hub_height=80.0,
@@ -75,6 +78,7 @@ def test_combined_wake_one_diameter_downwind():
         thrust_curve=FixedThrustCurve(0.4))
 
     downwind_turbine = Turbine(
+        name="T2",
         x=upwind_turbine.diameter,
         y=0.0,
         hub_height=upwind_turbine.hub_height,
