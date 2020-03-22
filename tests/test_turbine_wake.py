@@ -43,7 +43,7 @@ def test_combined_wake_diameter():
         ambient_turbulence=ambient_turbulence,
         apply_meander=apply_meander)
 
-    upwind_wake.combine()
+    upwind_wake.calculate()
     
     downwind_wake = TurbineWake(
         downwind_turbine,
@@ -55,7 +55,7 @@ def test_combined_wake_diameter():
 
     downwind_wake.add_wake(upwind_wake)
 
-    downwind_wake.combine()
+    downwind_wake.calculate()
 
     assert downwind_wake.waked_velocity == pytest.approx(ambient_velocity * (1.0 - 0.229031), abs=0.005)
     assert downwind_wake.waked_turbulence == pytest.approx(0.128515208500)
@@ -91,7 +91,7 @@ def test_combined_wake_one_diameter_downwind():
                     apply_meander=False
                 )
 
-    upwind_wake.combine()
+    upwind_wake.calculate()
 
     assert upwind_wake.near_wake_length == pytest.approx(149.4116199, abs=0.0005)
 
@@ -104,7 +104,7 @@ def test_combined_wake_one_diameter_downwind():
 
     downwind_wake.add_wake(upwind_wake)
 
-    downwind_wake.combine()
+    downwind_wake.calculate()
 
     assert downwind_wake.waked_velocity == pytest.approx(ambient_velocity * (1 - 0.2910), abs=0.005)
     assert downwind_wake.waked_turbulence == pytest.approx(0.204077306)

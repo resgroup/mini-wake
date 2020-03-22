@@ -63,7 +63,7 @@ class TurbineWake:
         
         self.wakes = []
 
-        self._combined = False
+        self._calculated = False
         self._waked_velocity = None
         self._waked_turbulence = None
         self._next_wake = None
@@ -74,11 +74,11 @@ class TurbineWake:
         # so that positive x is along wind direction
         # and that upwind only turbines are added in order
 
-        if not turbine_wake.combined:
+        if not turbine_wake.is_calculated:
             raise Exception(
                     "Wake cannot be added as it "
-                    "hasn't been combined yet. "
-                    "Call combine() method first.")
+                    "hasn't been calculated yet. "
+                    "Call calculate() method first.")
 
         if len(self.wakes) > 0:
             if turbine_wake.x < self.wakes[-1].x:
@@ -129,7 +129,7 @@ class TurbineWake:
 
         return combined.combined_value
 
-    def combine(self):
+    def calculate(self):
 
         velocity_deficit = self.velocity_deficit_integrator.calculate(
                                 self.downwind_turbine.diameter,
@@ -151,7 +151,7 @@ class TurbineWake:
                             upwind_local_turbulence_intensity=self._waked_turbulence,
                             apply_meander=self.apply_meander)
 
-        self._combined = True
+        self._is_calculated = True
 
     @property
     def x(self):
@@ -166,39 +166,39 @@ class TurbineWake:
         return self.downwind_turbine.hub_height
 
     @property
-    def combined(self):
-        return self._combined
+    def is_calculated(self):
+        return self._is_calculated
 
-    def validate_has_been_combined(self):
+    def validate_has_been_calculated(self):
 
-        if not self.combined:
+        if not self.is_calculated:
             raise Exception(
-                "Property cannot be called until combine()"
-                "method has been called")
+                "Property/mehtod cannot be called until calculate()"
+                "method has been called.")
 
     @property
     def waked_velocity(self):
 
-        self.validate_has_been_combined()
+        self.validate_has_been_calculated()
 
         return self._waked_velocity
 
     @property
     def waked_turbulence(self):
 
-        self.validate_has_been_combined()
+        self.validate_has_been_calculated()
 
         return self._waked_turbulence
 
     @property
     def near_wake_length(self):
 
-        self.validate_has_been_combined()
+        self.validate_has_been_calculated()
 
         return self._next_wake.near_wake_length
 
     def calculate_cross_section(self, distance_downwind):
 
-        self.validate_has_been_combined()
+        self.validate_has_been_calculated()
 
         return self._next_wake.calculate(distance_downwind)
