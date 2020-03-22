@@ -104,21 +104,7 @@ class WakeAtRotorCenter:
         return (self.lateral_distance + lateral_offset) / self.upwind_diameter
 
 
-class WakeResult:
-
-    def __init__(
-                self,
-                waked_velocity,
-                waked_turbulence,
-                next_wake
-    ):
-
-        self.waked_velocity = waked_velocity
-        self.waked_turbulence = waked_turbulence
-        self.next_wake = next_wake
-
-
-class CombinedWake:
+class TurbineWake:
 
     def __init__(
                 self,
@@ -126,7 +112,8 @@ class CombinedWake:
                 ambient_velocity,
                 ambient_turbulence,
                 velocity_deficit_integrator=VelocityDeficitIntegrator(),
-                added_turbulence_integrator=AddedTurbulenceIntegrator()
+                added_turbulence_integrator=AddedTurbulenceIntegrator(),
+                apply_meander=True
                 ):
 
         self.ambient_velocity = ambient_velocity
@@ -136,28 +123,42 @@ class CombinedWake:
         self.velocity_deficit_integrator = velocity_deficit_integrator
         self.added_turbulence_integrator = added_turbulence_integrator
 
+        self.apply_meander = apply_meander
+        
         self.wakes = []
 
-    def add_wake(self, wake):
+        self._combined = False
+        self._waked_velocity = None
+        self._waked_turbulence = None
+        self._next_wake = None
 
-        # code currently assumes co-ordinates have been rotated
+    def add_wake(self, turbine_wake):
+
+        # code assumes co-ordinates have been rotated
         # so that positive x is along wind direction
-        # and that upwind onyl turbines are added in order
+        # and that upwind only turbines are added in order
+
+        if not turbine_wake.combined:
+            raise Exception(
+                    "Wake cannot be added as it "
+                    "hasn't been combined yet. "
+                    "Call combine() method first.")
 
         if len(self.wakes) > 0:
-            if wake.upwind_turbine.x < self.wakes[-1].cross_section.upwind_turbine.x:
+            if turbine_wake.x < self.wakes[-1].x:
                 raise Exception('Added wake is not downwind of previous')
 
-        if wake.upwind_turbine.x > self.downwind_turbine.x:
+        downwind_separation = self.x - turbine_wake.x
+
+        if downwind_separation < 0:
             raise Exception('Added wake is not upwind of downwind turbine')
 
-        downwind_separation = self.downwind_turbine.x - wake.upwind_turbine.x
-        lateral_separation = self.downwind_turbine.y - wake.upwind_turbine.y
-        vertical_separation = self.downwind_turbine.hub_height - wake.upwind_turbine.hub_height
+        lateral_separation = self.y - turbine_wake.y
+        vertical_separation = self.hub_height - turbine_wake.hub_height
 
         self.wakes.append(
             WakeAtRotorCenter(
-                wake.calculate(downwind_separation),
+                turbine_wake.calculate_cross_section(downwind_separation),
                 lateral_separation,
                 vertical_separation))
 
@@ -192,27 +193,76 @@ class CombinedWake:
 
         return combined.combined_value
 
-    def combine_and_integrate(self):
+    def combine(self):
 
         velocity_deficit = self.velocity_deficit_integrator.calculate(
                                 self.downwind_turbine.diameter,
                                 self.velocity_deficit_at_offset)
         
-        waked_velocity = (1.0 - velocity_deficit) * self.ambient_velocity
+        self._waked_velocity = (1.0 - velocity_deficit) * self.ambient_velocity
 
         added_turbulence = self.added_turbulence_integrator.calculate(
                             self.downwind_turbine.diameter,
                             self.added_turbulence_at_offset)
 
-        waked_turbulence = math.sqrt(added_turbulence * added_turbulence
-                                     + self.ambient_turbulence * self.ambient_turbulence)
+        self._waked_turbulence = math.sqrt(added_turbulence * added_turbulence
+                                           + self.ambient_turbulence * self.ambient_turbulence)
 
-        next_wake = SingleWake(
+        self._next_wake = SingleWake(
                             ambient_turbulence_intensity=self.ambient_turbulence,
                             upwind_turbine=self.downwind_turbine,
-                            upwind_velocity=waked_velocity,
-                            upwind_local_turbulence_intensity=waked_turbulence,
-                            apply_meander=True)
+                            upwind_velocity=self._waked_velocity,
+                            upwind_local_turbulence_intensity=self._waked_turbulence,
+                            apply_meander=self.apply_meander)
 
-        #could calculate SingleWake of turbine here
-        return WakeResult(waked_velocity, waked_turbulence, next_wake)
+        self._combined = True
+
+    @property
+    def x(self):
+        return self.downwind_turbine.x
+
+    @property
+    def y(self):
+        return self.downwind_turbine.y
+
+    @property
+    def hub_height(self):
+        return self.downwind_turbine.hub_height
+
+    @property
+    def combined(self):
+        return self._combined
+
+    def validate_has_been_combined(self):
+
+        if not self.combined:
+            raise Exception(
+                "Property cannot be called until combine()"
+                "method has been called")
+
+    @property
+    def waked_velocity(self):
+
+        self.validate_has_been_combined()
+
+        return self._waked_velocity
+
+    @property
+    def waked_turbulence(self):
+
+        self.validate_has_been_combined()
+
+        return self._waked_turbulence
+
+    @property
+    def near_wake_length(self):
+
+        self.validate_has_been_combined()
+
+        return self._next_wake.near_wake_length
+
+    def calculate_cross_section(self, distance_downwind):
+
+        self.validate_has_been_combined()
+
+        return self._next_wake.calculate(distance_downwind)
