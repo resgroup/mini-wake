@@ -1,10 +1,8 @@
 import pytest
 
-from miniwake.combination import VelocityDeficitCombiner
-from miniwake.single_wake import SingleWake
 from miniwake.turbine import Turbine
 from miniwake.turbine import FixedThrustCurve
-from miniwake.combination import TurbineWake
+from miniwake.turbine_wake import TurbineWake
 
 
 class RotorCenterIntegrator:
@@ -14,21 +12,6 @@ class RotorCenterIntegrator:
                   wake_integral):
 
         return wake_integral(0, 0)
-
-
-def test_velicity_deficit_combination():
-
-    combiner = VelocityDeficitCombiner()
-
-    combiner.add(value=0.1, normalised_distance_upwind=3.0, normalised_lateral_distance=0.0)
-
-    assert combiner.combined_value == 0.1
-
-    combiner.add(value=0.05, normalised_distance_upwind=7.0, normalised_lateral_distance=0.0)
-
-    assert combiner.closest_normalised_distance_upwind == 3.0
-
-    assert combiner.combined_value == 0.1
 
 
 def test_combined_wake_diameter():
