@@ -154,6 +154,10 @@ class TurbineWake:
         self._is_calculated = True
 
     @property
+    def name(self):
+        return self.downwind_turbine.name
+
+    @property
     def x(self):
         return self.downwind_turbine.x
 

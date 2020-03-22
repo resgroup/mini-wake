@@ -23,15 +23,15 @@ class WindFarmWake:
         self.turbine_wakes = self.calculate(turbines)
 
     def calculate(self, turbines):
-        
+
         turbine_wakes = []
 
         for i in range(len(turbines)):
-        
+
             wake = TurbineWake(
                         turbines[i],
-                        self.ambient_velocity,
-                        self.ambient_turbulence,
+                        self.ambient_velocity.get_turbine(turbines[i].name),
+                        self.ambient_turbulence.get_turbine(turbines[i].name),
                         velocity_deficit_integrator=self.velocity_deficit_integrator,
                         added_turbulence_integrator=self.added_turbulence_integrator, 
                         apply_meander=self.apply_meander
