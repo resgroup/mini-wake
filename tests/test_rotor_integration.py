@@ -1,10 +1,12 @@
 import pytest
 
-from miniwake.rotor_integration import EffectiveRadiusIntegrator
+from miniwake.rotor_integration import VelocityDeficitIntegrator
 
-def one(radius, theta):
+
+def one(lateral_offset, vertical_offset):
     return 1.0
 
+
 def test_rotor_integration():
-    integrator = EffectiveRadiusIntegrator(12)
-    assert integrator.calculate(1.0, one) == 1.0
+    integrator = VelocityDeficitIntegrator()
+    assert integrator.calculate(90.0, one) == 1.0

@@ -75,6 +75,8 @@ def calculate_total_wake_erosion_rate(
 def calculate_radius(diameter):
     return diameter * 0.5
 
+def generic_rpm(diameter):
+    return 1600 / diameter
 
 def calculate_near_wake_length(
         diameter,
@@ -83,6 +85,9 @@ def calculate_near_wake_length(
         number_of_blades,
         velocity,
         turbulence_intensity):
+
+    if rpm is None:
+        rpm = generic_rpm(diameter)
 
     # The near wake length is the distance after which the potential core is completely eroded
 
