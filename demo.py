@@ -5,7 +5,8 @@ from miniwake.turbine import FixedThrustCurve
 import numpy as np
 import matplotlib.pyplot as plt
 
-upwind_turbine = Turbine(x=0.0,
+upwind_turbine = Turbine(name="T1",
+                         x=0.0,
                          y=0.0,
                          hub_height=80.0,
                          diameter=76.0,

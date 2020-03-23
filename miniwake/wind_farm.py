@@ -7,15 +7,13 @@ class WindFarm:
     def __init__(
             self,
             turbines,
-            ambient_velocity,
-            ambient_turbulence,
+            ambient_conditions,
             velocity_integrator,
             turbulence_integrator,
             apply_meander):
 
         self.turbines = turbines
-        self.ambient_velocity = ambient_velocity
-        self.ambient_turbulence = ambient_turbulence
+        self.ambient_conditions = ambient_conditions
 
         self.validate_unique_turbine_names()
         self.transformed_turbines_cache = {}
@@ -45,8 +43,7 @@ class WindFarm:
 
         wind_farm_wake = WindFarmWake(
                     transformed_turbines,
-                    ambient_velocity=self.ambient_velocity.get_bin(direction, reference_ambient_velocity),
-                    ambient_turbulence=self.ambient_turbulence.get_bin(direction, reference_ambient_velocity),
+                    ambient_conditions=self.ambient_conditions.get_bin(direction, reference_ambient_velocity),
                     velocity_deficit_integrator=self.velocity_integrator,
                     added_turbulence_integrator=self.turbulence_integrator,
                     apply_meander=self.apply_meander)
