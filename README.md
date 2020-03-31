@@ -32,3 +32,8 @@ wake = single_wake.calculate(upwind_diameter * 4.0)
 print(wake.velocity_deficit(distance_from_wake_center=0.0))
 print(wake.added_turbulence(distance_from_wake_center=0.0))
 ```
+
+## Releasing
+
+Any push to master will release the latest version of the package to the PyPi server. If the version number hasn't changed, then it won't overwrite existing files, so won't normally cause problems, but it is still best avoided. 
+
