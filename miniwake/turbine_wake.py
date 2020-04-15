@@ -85,7 +85,7 @@ class TurbineWake:
 
         if len(self.wakes) > 0:
             if turbine_wake.x < self.wakes[-1].x:
-                raise Exception('Added wake is not downwind of previous')
+                raise Exception(f'Added wake (x={turbine_wake.x}) is not downwind of previous (x={self.wakes[-1].x})')
 
         downwind_separation = self.x - turbine_wake.x
 
@@ -97,7 +97,7 @@ class TurbineWake:
 
         self.wakes.append(
             WakeAtRotorCenter(
-                self.x,
+                turbine_wake.x,
                 turbine_wake.calculate_cross_section(downwind_separation),
                 lateral_separation,
                 vertical_separation))

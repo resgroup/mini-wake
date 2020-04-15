@@ -26,7 +26,7 @@ class WindFarmWake:
         turbine_wakes = []
 
         for i in range(len(turbines)):
-
+            # print(turbines[i].name)
             wake = TurbineWake(
                         turbines[i],
                         self.ambient_conditions.get_velocity(turbines[i].name),
@@ -41,6 +41,7 @@ class WindFarmWake:
                     raise Exception("Wakes must be added in order upwind to downwind")
 
             for j in range(i):
+                # print("-", j, turbine_wakes[j].name)
                 wake.add_wake(turbine_wakes[j])
 
             wake.calculate()
