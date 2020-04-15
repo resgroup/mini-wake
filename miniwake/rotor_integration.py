@@ -1,6 +1,15 @@
 import math
 
 
+class RotorCenterIntegrator:
+
+    def calculate(self,
+                  downwind_rotor_diameter,
+                  wake_integral):
+
+        return wake_integral(0, 0)
+
+
 class VelocityDeficitIntegrator:
 
     def __init__(self, number_of_sections=12):
