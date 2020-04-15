@@ -11,13 +11,9 @@ from numpy import linspace
 from numpy import array
 from numpy import save as save_np
 from numpy import load as load_np
-
+from numpy import zeros
 
 velocity_deficit_look_up = None
-
-
-def load_look_up(look_up_folder):
-    velocity_deficit_look_up = VelocityDeficitLookUp(lookup_path)
 
 
 def calculate_shape(normalized_position):
@@ -188,19 +184,24 @@ def calculate_velocity_deficit(
     normalized_distance_downwind = max([2.0, normalized_distance_downwind])
     thrust_coefficient = min([1.0, thrust_coefficient])
 
-    return max([solve_velocity_deficit(thrust_coefficient, normalized_distance_downwind, turbulence), 0])
+    if velocity_deficit_look_up is not None:
+        solution = velocity_deficit_look_up(
+                    thrust_coefficient=thrust_coefficient,
+                    normalized_distance_downwind=normalized_distance_downwind,
+                    turbulence=turbulence)
+    else:
+        solution = solve_velocity_deficit(
+                            thrust_coefficient,
+                            normalized_distance_downwind,
+                            turbulence)
+
+    return max([solution, 0])
 
 
 def solve_velocity_deficit(
         thrust_coefficient,
         normalized_distance_downwind,
         turbulence):
-
-    if velocity_deficit_look_up is not None:
-        return velocity_deficit_look_up(
-            thrust_coefficient=thrust_coefficient,
-            normalized_distance_downwind=normalized_distance_downwind,
-            turbulence=turbulence)
 
     """Calculates center line velocity deficit with main solution on demand.
        This could be increased in speed by solving a lookup-table of values once and interpolating
@@ -243,14 +244,16 @@ class VelocityDeficitLookUpBuilder:
             thrust_coefficient_step,
             turbulence_intensity_step,
             max_dist_downwind,
+            max_turbulence_intensity,
+            max_thrust_coefficient,
             print_messages=False):
 
         if print_messages:
             print("Building Look-up")
 
         self.distances = self.steps(0, max_dist_downwind, dist_downwind_step)
-        self.cts = self.steps(0, 1.0, thrust_coefficient_step)
-        self.turbulences = self.steps(0, 1.0, turbulence_intensity_step)
+        self.cts = self.steps(0, max_thrust_coefficient, thrust_coefficient_step)
+        self.turbulences = self.steps(0, max_turbulence_intensity, turbulence_intensity_step)
 
         values = []
 
@@ -266,11 +269,11 @@ class VelocityDeficitLookUpBuilder:
                 if print_messages:
                     print(f"-TI={(turbulence)*100.0:.2f}%")
 
-                values_for_ct.append(self.calculate(self.distances, 0.2, 0.1))
+                values_for_ct.append(self.calculate(self.distances, ct, turbulence))
 
             values.append(array(values_for_ct))
 
-        self.values = array(values)
+        self.deficits = array(values)
 
     def save(self, folder):
         
@@ -280,9 +283,12 @@ class VelocityDeficitLookUpBuilder:
         save_np(os.path.join(folder, "thrust_cofficients.npy"), self.cts)
         save_np(os.path.join(folder, "turbulences.npy"), self.turbulences)
         save_np(os.path.join(folder, "distances.npy"), self.distances)
-        save_np(os.path.join(folder, "data.npy"), self.data)
+        save_np(os.path.join(folder, "deficits.npy"), self.deficits)
 
     def calculate(self, distances, ct, turbulence):
+        
+        if ct <= 0.0:
+            return zeros(distances.shape)
 
         integrator = WakeDeficitIntegrator(
             thrust_coefficient=ct,
@@ -309,7 +315,7 @@ class VelocityDeficitLookUpBuilder:
         )
 
     def calculate_num(self, start, stop, step):
-        return int((stop-start) / step) + 1
+        return int(round((stop-start) / step, 0))+ 1
 
 
 class VelocityDeficitLookUp:
@@ -319,11 +325,11 @@ class VelocityDeficitLookUp:
         cts = load_np(os.path.join(look_up_folder, "thrust_cofficients.npy"))
         turbulences = load_np(os.path.join(look_up_folder, "turbulences.npy"))
         distances = load_np(os.path.join(look_up_folder, "distances.npy"))
-        data = load_np(os.path.join(look_up_folder, "data.npy"))
+        deficits = load_np(os.path.join(look_up_folder, "deficits.npy"))
 
         self.interpolate = interpolate.RegularGridInterpolator(
                 points=(cts, turbulences, distances),
-                values=data,
+                values=deficits,
                 method='linear',
                 bounds_error=True
             )
@@ -335,14 +341,14 @@ class VelocityDeficitLookUp:
             turbulence):
 
         return self.interpolate(
-                    thrust_coefficient,
+                    (thrust_coefficient,
                     turbulence,
-                    normalized_distance_downwind)
+                    normalized_distance_downwind))
 
 
 if __name__ == "__main__":
 
-    rebuild = True
+    rebuild = False
     lookup_path = os.path.join(os.path.dirname(__file__), "look_up")
 
     if rebuild:
@@ -352,13 +358,15 @@ if __name__ == "__main__":
                             thrust_coefficient_step=0.1,
                             turbulence_intensity_step=0.1,
                             max_dist_downwind=1000.0,
+                            max_turbulence_intensity=0.4,
+                            max_thrust_coefficient=1.0,
                             print_messages=True)
 
         look_up_builder.save(lookup_path)
 
     look_up = VelocityDeficitLookUp(lookup_path)
 
-    print(look_up(0.4, 100, 0.25))
-    print(calculate_velocity_deficit(0.4, 100, 0.25))
+    print(look_up(0.4, 10, 0.2))
+    print(calculate_velocity_deficit(0.4, 10, 0.2))
 
     print("Done")
