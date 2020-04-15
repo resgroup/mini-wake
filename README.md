@@ -1,8 +1,7 @@
 # mini-wake
 
-[![Build status](https://ci.appveyor.com/api/projects/status/ojclr0weuw5siax2?svg=true)](https://ci.appveyor.com/project/RESSoftwareTeam/mini-wake)
+[![Build status](https://ci.appveyor.com/api/projects/status/ojclr0weuw5siax2?svg=true)](https://ci.appveyor.com/project/RESSoftwareTeam/mini-wake) [![codecov](https://codecov.io/gh/resgroup/mini-wake/branch/master/graph/badge.svg)](https://codecov.io/gh/resgroup/mini-wake) [![Maintainability](https://api.codeclimate.com/v1/badges/351708b2d5190b33aafe/maintainability)](https://codeclimate.com/github/resgroup/mini-wake/maintainability)
 
-[![codecov](https://codecov.io/gh/resgroup/mini-wake/branch/master/graph/badge.svg)](https://codecov.io/gh/resgroup/mini-wake)
 
 An open-source, light weight, fast to run, easy to understand  &amp; carefully crafted implementation of the Ainslie eddy viscosity wake model and associated sub-models
 
@@ -32,3 +31,8 @@ wake = single_wake.calculate(upwind_diameter * 4.0)
 print(wake.velocity_deficit(distance_from_wake_center=0.0))
 print(wake.added_turbulence(distance_from_wake_center=0.0))
 ```
+
+## Releasing
+
+Any push to master will release the latest version of the package to the PyPi server. If the version number hasn't changed, then it won't overwrite existing files, so won't normally cause problems, but it is still best avoided. 
+
