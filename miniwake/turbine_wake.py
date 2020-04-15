@@ -11,10 +11,13 @@ class WakeAtRotorCenter:
 
     def __init__(
                 self,
+                x,
                 cross_section,
                 lateral_distance,
                 vertical_distance
                 ):
+
+        self.x = x
 
         self.cross_section = cross_section
         self.lateral_distance = lateral_distance
@@ -94,6 +97,7 @@ class TurbineWake:
 
         self.wakes.append(
             WakeAtRotorCenter(
+                self.x,
                 turbine_wake.calculate_cross_section(downwind_separation),
                 lateral_separation,
                 vertical_separation))
