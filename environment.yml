@@ -4,6 +4,7 @@ channels:
 dependencies:
   - numpy
   - scipy
+  - matplotlib
   - pytest
   - pytest-cov
   - coverage
