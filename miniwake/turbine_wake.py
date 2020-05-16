@@ -1,21 +1,26 @@
 import math
+import numpy as np
 
 from .rotor_integration import VelocityDeficitIntegrator
 from .rotor_integration import AddedTurbulenceIntegrator
+
 from .single_wake import SingleWake
+from .single_wake import NoWakeCrossSection
+
 from .combination import VelocityDeficitCombiner
 from .combination import AddedTurbulenceCombiner
+
+from .distance import distance_sq
 
 
 class WakeAtRotorCenter:
 
     def __init__(
-                self,
-                x,
-                cross_section,
-                lateral_distance,
-                vertical_distance
-                ):
+            self,
+            x,
+            cross_section,
+            lateral_distance,
+            vertical_distance):
 
         self.x = x
 
@@ -24,46 +29,61 @@ class WakeAtRotorCenter:
         self.vertical_distance = vertical_distance
 
         self.upwind_diameter = cross_section.upwind_diameter
+        self.one_over_upwind_diameter = 1.0 / self.upwind_diameter
         self.normalised_distance_downwind = cross_section.normalised_distance_downwind
 
     def velocity_deficit(self, lateral_offset, vertical_offset):
 
         return self.cross_section.velocity_deficit(
-                self.lateral_distance + lateral_offset,
-                self.vertical_distance + vertical_offset)
+            self.lateral_distance + lateral_offset,
+            self.vertical_distance + vertical_offset)
 
     def added_turbulence(self, lateral_offset, vertical_offset):
 
         return self.cross_section.added_turbulence(
-                self.lateral_distance + lateral_offset,
-                self.vertical_distance + vertical_offset)
+            self.lateral_distance + lateral_offset,
+            self.vertical_distance + vertical_offset)
 
     def normalised_lateral_distance(self, lateral_offset):
 
-        return (self.lateral_distance + lateral_offset) / self.upwind_diameter
+        return (self.lateral_distance + lateral_offset) * self.one_over_upwind_diameter
 
 
 class TurbineWake:
 
     def __init__(
-                self,
-                downwind_turbine,
-                ambient_velocity,
-                ambient_turbulence,
-                velocity_deficit_integrator=VelocityDeficitIntegrator(),
-                added_turbulence_integrator=AddedTurbulenceIntegrator(),
-                apply_meander=True
-                ):
+            self,
+            downwind_turbine,
+            ambient_velocity,
+            ambient_turbulence,
+            velocity_deficit_integrator=VelocityDeficitIntegrator(),
+            added_turbulence_integrator=AddedTurbulenceIntegrator(),
+            apply_meander=True,
+            apply_added_turbulence=True):
+
+        if np.isnan(ambient_turbulence):
+            raise Exception("Ambient turbulence intensity is nan")
+
+        if np.isnan(ambient_velocity):
+            raise Exception("Ambient velocity intensity is nan")
 
         self.ambient_velocity = ambient_velocity
         self.ambient_turbulence = ambient_turbulence
+
         self.downwind_turbine = downwind_turbine
+
+        self.name = self.downwind_turbine.name
+        self.x = self.downwind_turbine.x
+        self.y = self.downwind_turbine.y
+        self.diameter = self.downwind_turbine.diameter
+        self.hub_height = self.downwind_turbine.hub_height
 
         self.velocity_deficit_integrator = velocity_deficit_integrator
         self.added_turbulence_integrator = added_turbulence_integrator
 
         self.apply_meander = apply_meander
-        
+        self.apply_added_turbulence = apply_added_turbulence
+
         self.wakes = []
 
         self._calculated = False
@@ -85,9 +105,10 @@ class TurbineWake:
 
         if len(self.wakes) > 0:
             if turbine_wake.x < self.wakes[-1].x:
-                raise Exception('Added wake is not downwind of previous')
+                raise Exception(f'Added wake (x={turbine_wake.x}) is not downwind of previous (x={self.wakes[-1].x})')
 
         downwind_separation = self.x - turbine_wake.x
+        downwind_separation_sq = downwind_separation * downwind_separation
 
         if downwind_separation < 0:
             raise Exception('Added wake is not upwind of downwind turbine')
@@ -95,10 +116,24 @@ class TurbineWake:
         lateral_separation = self.y - turbine_wake.y
         vertical_separation = self.hub_height - turbine_wake.hub_height
 
+        # the '45 degree rule' to avoid expensive calculations where there
+        # is clearly no wake overlap
+
+        dual_radius = 0.5 * (self.diameter + turbine_wake.diameter)
+
+        rd_sq = distance_sq(
+            max([0, abs(lateral_separation) - dual_radius]),
+            max([0, abs(vertical_separation) - dual_radius]))
+
+        if (downwind_separation_sq <= rd_sq):
+            cross_section = NoWakeCrossSection(downwind_separation, turbine_wake.diameter)
+        else:
+            cross_section = turbine_wake.calculate_cross_section(downwind_separation)
+
         self.wakes.append(
             WakeAtRotorCenter(
-                self.x,
-                turbine_wake.calculate_cross_section(downwind_separation),
+                turbine_wake.x,
+                cross_section,
                 lateral_separation,
                 vertical_separation))
 
@@ -127,8 +162,8 @@ class TurbineWake:
 
             combined.add(
                 wake.added_turbulence(
-                        lateral_offset,
-                        vertical_offset)
+                    lateral_offset,
+                    vertical_offset)
             )
 
         return combined.combined_value
@@ -136,42 +171,28 @@ class TurbineWake:
     def calculate(self):
 
         velocity_deficit = self.velocity_deficit_integrator.calculate(
-                                self.downwind_turbine.diameter,
-                                self.velocity_deficit_at_offset)
-        
+            self.downwind_turbine.diameter,
+            self.velocity_deficit_at_offset)
+
         self._waked_velocity = (1.0 - velocity_deficit) * self.ambient_velocity
 
         added_turbulence = self.added_turbulence_integrator.calculate(
-                            self.downwind_turbine.diameter,
-                            self.added_turbulence_at_offset)
+            self.downwind_turbine.diameter,
+            self.added_turbulence_at_offset)
 
-        self._waked_turbulence = math.sqrt(added_turbulence * added_turbulence
-                                           + self.ambient_turbulence * self.ambient_turbulence)
+        self._waked_turbulence = math.sqrt(
+            added_turbulence * added_turbulence +
+            self.ambient_turbulence * self.ambient_turbulence)
 
         self._next_wake = SingleWake(
-                            ambient_turbulence_intensity=self.ambient_turbulence,
-                            upwind_turbine=self.downwind_turbine,
-                            upwind_velocity=self._waked_velocity,
-                            upwind_local_turbulence_intensity=self._waked_turbulence,
-                            apply_meander=self.apply_meander)
+            ambient_turbulence_intensity=self.ambient_turbulence,
+            upwind_turbine=self.downwind_turbine,
+            upwind_velocity=self._waked_velocity,
+            upwind_local_turbulence_intensity=self._waked_turbulence,
+            apply_meander=self.apply_meander,
+            apply_added_turbulence=self.apply_added_turbulence)
 
         self._is_calculated = True
-
-    @property
-    def name(self):
-        return self.downwind_turbine.name
-
-    @property
-    def x(self):
-        return self.downwind_turbine.x
-
-    @property
-    def y(self):
-        return self.downwind_turbine.y
-
-    @property
-    def hub_height(self):
-        return self.downwind_turbine.hub_height
 
     @property
     def is_calculated(self):

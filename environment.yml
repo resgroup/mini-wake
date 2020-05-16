@@ -1,9 +1,10 @@
-name: mini-wake
+name: miniwake
 channels:
   - defaults
 dependencies:
   - numpy
   - scipy
+  - matplotlib
   - pytest
   - pytest-cov
   - coverage
