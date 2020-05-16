@@ -29,7 +29,7 @@ def rotate_and_sort_turbines(direction, turbines):
 
     shifted = []
 
-    for turbine in turbines:
+    for turbine in rotated:
 
         shifted.append(
             turbine.clone_at_new_location(

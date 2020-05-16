@@ -2,7 +2,7 @@ import math
 
 
 def calculate_ambient_turbulence_wake_erosion_rate(turbulence):
-    
+
     # Equate 19 (from p440)
     # An Experimental analysis of wind turbine wakes, P.E.J. Vermeulen, Wind Energy Systems August 26-29, 1980.
 
@@ -30,7 +30,9 @@ def calculate_flow_field_ratio(thrust_coefficient):
 def calculate_mechanical_turbulence_wake_erosion_rate(
         number_of_blades,
         tip_speed_ratio):
+
     return 0.012 * number_of_blades * tip_speed_ratio
+
 
 def calculate_n(flow_field_ratio):
 
@@ -69,14 +71,17 @@ def calculate_total_wake_erosion_rate(
         ambient_turbulence_wake_erosion_rate,
         shear_generated_turbulence_wake_erosion_rate,
         mechanical_turbulence_wake_erosion_rate):
+
     return math.sqrt(ambient_turbulence_wake_erosion_rate ** 2.0 + shear_generated_turbulence_wake_erosion_rate ** 2.0 + mechanical_turbulence_wake_erosion_rate ** 2.0)
 
 
 def calculate_radius(diameter):
     return diameter * 0.5
 
+
 def generic_rpm(diameter):
     return 1600 / diameter
+
 
 def calculate_near_wake_length(
         diameter,

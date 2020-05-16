@@ -1,16 +1,32 @@
+import math
+import os
+import os.path
+
 from scipy import integrate
 from math import sqrt
 from scipy import interpolate
+
 from numpy import isnan
-import math
+from numpy import linspace
+from numpy import array
+from numpy import zeros
+
+import numpy as np
 
 
-def calculate_shape(normalized_position):
-    if abs(normalized_position) > 2.0:
+velocity_deficit_look_up = None
+
+
+def calculate_shape_at_position_sq(normalized_position_sq):
+    if normalized_position_sq > 4.0:
         # shape factor is less than 0.0001% beyond 2.0
         return 0.0
     else:
-        return math.exp(-3.56 * (normalized_position ** 2.0))
+        return math.exp(-3.56 * normalized_position_sq)
+
+
+def calculate_shape(normalized_position):
+    return calculate_shape_at_position_sq(normalized_position * normalized_position)
 
 
 def calculate_width(thrust_coefficient, velocity_deficit):
@@ -170,20 +186,50 @@ def calculate_velocity_deficit(
         normalized_distance_downwind,
         turbulence):
 
+    if thrust_coefficient < 0.0:
+        raise Exception("Negative wake thrust coefficient")
+
+    if turbulence < 0.0:
+        raise Exception("Negative wake distance")
+
+    if normalized_distance_downwind < 0.0:
+        raise Exception("Negative wake turbulence")
+    
     normalized_distance_downwind = max([2.0, normalized_distance_downwind])
+
     thrust_coefficient = min([1.0, thrust_coefficient])
 
-    return max([solve_velocity_deficit(thrust_coefficient, normalized_distance_downwind, turbulence), 0])
+    if velocity_deficit_look_up is not None:
+
+        if isnan(turbulence):
+            raise Exception("Cannot calculate velocity deficit for turbulence=nan")
+
+        # clamp turbulence at maximum of look up
+        if turbulence > velocity_deficit_look_up.max_turbulence:
+            turbulence = velocity_deficit_look_up.max_turbulence
+
+        # clamp thrust_coefficient to one
+        if thrust_coefficient > 1.0:
+            thrust_coefficient = 1.0
+
+        solution = velocity_deficit_look_up(
+                    thrust_coefficient=thrust_coefficient,
+                    normalized_distance_downwind=normalized_distance_downwind,
+                    turbulence=turbulence)
+    else:
+
+        solution = solve_velocity_deficit(
+                            thrust_coefficient,
+                            normalized_distance_downwind,
+                            turbulence)
+
+    return max([solution, 0])
 
 
 def solve_velocity_deficit(
         thrust_coefficient,
         normalized_distance_downwind,
         turbulence):
-
-    """Calculates center line velocity deficit with main solution on demand.
-       This could be increased in speed by solving a lookup-table of values once and interpolating
-    """
 
     integrator = WakeDeficitIntegrator(
         thrust_coefficient=thrust_coefficient,
@@ -215,6 +261,12 @@ def solve_velocity_deficit(
 
 
 if __name__ == "__main__":
-    velocity_deficit = calculate_velocity_deficit(1.5, 100, 0.25)
-    print(type(velocity_deficit))
-    print(velocity_deficit)
+    
+    ct = 0.4
+    ti = 0.2
+
+    for i in range(10):
+        d = float(i)
+        print(d, calculate_velocity_deficit(ct, float(i), ti))
+
+    print("Done")

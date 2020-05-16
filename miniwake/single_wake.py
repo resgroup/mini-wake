@@ -1,4 +1,4 @@
-import math
+import numpy as np
 
 from .velocity_deficit import calculate_shape
 from .velocity_deficit import calculate_width
@@ -6,16 +6,16 @@ from .velocity_deficit import calculate_velocity_deficit
 from .added_turbulence import quarton_added_turbulence
 from .meander import calculate_meander
 from .near_wake_length import calculate_near_wake_length
-
-
-def distance(delta_x, delta_y):
-    return math.sqrt(delta_x * delta_x + delta_y * delta_y)
+from .distance import distance
+from .distance import distance_sq
 
 
 class NoWakeCrossSection:
 
-    def __init__(self, distance_downwind):
+    def __init__(self, distance_downwind, upwind_diameter):
         self.distance_downwind = distance_downwind
+        self.upwind_diameter = upwind_diameter
+        self.normalised_distance_downwind = distance_downwind / upwind_diameter
 
     def velocity_deficit(self,
                          lateral_distance,
@@ -43,12 +43,12 @@ class WakeCrossSection:
         self.normalised_distance_downwind = distance_downwind / upwind_diameter
 
         self.velocity_deficit = VelocityDeficitWakeProfile(
-                                    velocity_deficit,
-                                    wake_width)
+            velocity_deficit,
+            wake_width)
 
         self.added_turbulence = AddedTurbulenceWakeProfile(
-                                    added_turbulence,
-                                    wake_width)
+            added_turbulence,
+            wake_width)
 
         self.width = wake_width
 
@@ -58,15 +58,17 @@ class AddedTurbulenceWakeProfile:
     def __init__(self, added_turbulence, wake_width):
         self.added_turbulence = added_turbulence
         self.wake_width = wake_width
+        self.wake_width_sq = wake_width * wake_width
 
     def __call__(self,
                  lateral_distance,
                  vertical_distance=0.0):
 
-        distance_from_wake_center = distance(lateral_distance,
-                                             vertical_distance)
+        distance_from_wake_center_sq = distance_sq(
+            lateral_distance,
+            vertical_distance)
 
-        if abs(distance_from_wake_center) < self.wake_width:
+        if distance_from_wake_center_sq < self.wake_width_sq:
             return self.added_turbulence
         else:
             return 0.0
@@ -78,10 +80,11 @@ class VelocityDeficitWakeProfile:
         self.velocity_deficit = velocity_deficit
         self.wake_width = wake_width
 
-    def __call__(self,
-                lateral_distance,
-                vertical_distance=0.0):
-        
+    def __call__(
+            self,
+            lateral_distance,
+            vertical_distance=0.0):
+
         distance_from_wake_center = distance(lateral_distance,
                                              vertical_distance)
 
@@ -98,10 +101,15 @@ class SingleWake:
                 upwind_turbine,
                 upwind_velocity,
                 upwind_local_turbulence_intensity,
-                apply_meander=True):
+                apply_meander=True,
+                apply_added_turbulence=True):
+
+            if np.isnan(upwind_local_turbulence_intensity):
+                raise Exception("Upwind local turbulence intensity is nan")
 
             self.upwind_turbine = upwind_turbine
             self.ambient_turbulence_intensity = ambient_turbulence_intensity
+            self.upwind_velocity = upwind_velocity
 
             # todo check if density correction needed here
             self.upwind_thrust_coefficient = upwind_turbine.thrust_curve(upwind_velocity)
@@ -109,8 +117,8 @@ class SingleWake:
             if self.upwind_thrust_coefficient < 0.0:
                 raise Exception("Thrust coefficient cannot be less than 0")
 
-            if self.upwind_thrust_coefficient > 1.0:
-                raise Exception("Thrust coefficient cannot be greater than 1")
+            #if self.upwind_thrust_coefficient > 1.0:
+            #    raise Exception("Thrust coefficient cannot be greater than 1")
 
             self.upwind_local_turbulence_intensity = upwind_local_turbulence_intensity
 
@@ -123,13 +131,14 @@ class SingleWake:
                 turbulence_intensity=ambient_turbulence_intensity)
 
             self.apply_meander = apply_meander
+            self.apply_added_turbulence = apply_added_turbulence
 
         def calculate(self, distance_downwind):
 
             if distance_downwind < 0.0 or \
                self.is_negligible(self.upwind_thrust_coefficient) or \
                self.is_negligible(self.upwind_turbine.diameter):
-                return NoWakeCrossSection(distance_downwind)
+                return NoWakeCrossSection(distance_downwind, self.upwind_turbine.diameter)
 
             if distance_downwind <= 0:
                 raise Exception("Distance downwind must be a positive number")
@@ -156,19 +165,22 @@ class SingleWake:
                 velocity_deficit *= meander.amplitude_meander
                 wake_width *= meander.width_meander
 
-            added_turbulence = quarton_added_turbulence(
-                distance_downwind,
-                self.upwind_thrust_coefficient,
-                self.upwind_turbine.diameter,
-                self.near_wake_length,
-                self.ambient_turbulence_intensity)
+            if self.apply_added_turbulence:
+                added_turbulence = quarton_added_turbulence(
+                    distance_downwind,
+                    self.upwind_thrust_coefficient,
+                    self.upwind_turbine.diameter,
+                    self.near_wake_length,
+                    self.ambient_turbulence_intensity)
+            else:
+                added_turbulence = 0.0
 
             return WakeCrossSection(
-                    distance_downwind,
-                    velocity_deficit,
-                    added_turbulence,
-                    wake_width,
-                    self.upwind_turbine.diameter)
+                distance_downwind,
+                velocity_deficit,
+                added_turbulence,
+                wake_width,
+                self.upwind_turbine.diameter)
 
         def is_negligible(self, value):
             return value < SingleWake.NEAR_ZERO

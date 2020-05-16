@@ -79,7 +79,7 @@ def test_combined_wake_one_diameter_downwind():
 
     downwind_turbine = Turbine(
         name="T2",
-        x=upwind_turbine.diameter,
+        x=1.0 * upwind_turbine.diameter,
         y=0.0,
         hub_height=upwind_turbine.hub_height,
         diameter=upwind_turbine.diameter,

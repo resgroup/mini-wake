@@ -1,4 +1,4 @@
-name: mini-wake
+name: miniwake
 channels:
   - defaults
 dependencies:
