@@ -128,7 +128,6 @@ class TurbineWake:
             cross_section = turbine_wake.calculate_cross_section(downwind_separation)
         else:
             cross_section = NoWakeCrossSection(downwind_separation, turbine_wake.diameter)
-            raise Exception("no wake")
 
         self.wakes.append(
             WakeAtRotorCenter(
