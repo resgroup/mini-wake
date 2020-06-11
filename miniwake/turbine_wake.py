@@ -124,7 +124,7 @@ class TurbineWake:
             max([0, abs(lateral_separation) - dual_radius]),
             max([0, abs(vertical_separation) - dual_radius]))
 
-        if self.rule_of_thumb_control_surface(downwind_separation_sq, rd_sq, turbine_wake.waked_turbulence):
+        if self.rule_of_thumb_control_surface(downwind_separation, rd_sq, turbine_wake.waked_turbulence):
             cross_section = turbine_wake.calculate_cross_section(downwind_separation)
         else:
             cross_section = NoWakeCrossSection(downwind_separation, turbine_wake.diameter)
