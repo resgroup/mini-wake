@@ -124,7 +124,7 @@ class TurbineWake:
             max([0, abs(lateral_separation) - dual_radius]),
             max([0, abs(vertical_separation) - dual_radius]))
 
-        if self.rule_of_thumb_control_surface(downwind_separation, rd_sq, turbine_wake.waked_turbulence):
+        if self.rule_of_thumb_control_surface(downwind_separation, rd_sq, turbine_wake.waked_turbulence, turbine_wake.diameter):
             cross_section = turbine_wake.calculate_cross_section(downwind_separation)
         else:
             cross_section = NoWakeCrossSection(downwind_separation, turbine_wake.diameter)
@@ -136,23 +136,26 @@ class TurbineWake:
                 lateral_separation,
                 vertical_separation))
 
-    def rule_of_thumb_control_surface(self, downwind_separation, rd_sq, turbulence):
+    def rule_of_thumb_control_surface(self, downwind_separation, rd_sq, turbulence, diameter):
 
         a = -0.0232381 * turbulence * turbulence + 0.0001743 * turbulence
         b = 1.84646 * turbulence + 0.00400
         c = 2.0
 
-        downwind_separation_sq = downwind_separation * downwind_separation
+        normalised_downwind_separation = downwind_separation / diameter
+        normalised_downwind_separation_sq = normalised_downwind_separation * normalised_downwind_separation
 
-        control_surface = a * downwind_separation_sq + b * downwind_separation + c
+        normalised_control_surface = a * normalised_downwind_separation_sq + b * normalised_downwind_separation + c
+        control_surface = normalised_control_surface * diameter
+
         control_surface_sq = control_surface * control_surface
-
+        
         if (rd_sq < control_surface_sq):
             return True
         else:
             return False
 
-    def rule_of_thumb_45_degree(self, downwind_separation, rd_sq, turbulence):
+    def rule_of_thumb_45_degree(self, downwind_separation, rd_sq, turbulence, diameter):
 
         control_surface_sq = downwind_separation * downwind_separation
 
