@@ -1,5 +1,6 @@
 import numpy as np
 
+from .velocity_deficit import is_look_up_set
 from .velocity_deficit import calculate_shape
 from .velocity_deficit import calculate_width
 from .velocity_deficit import calculate_velocity_deficit
@@ -149,6 +150,10 @@ class SingleWake:
                 self.upwind_thrust_coefficient,
                 normalized_distance_downwind,
                 self.upwind_local_turbulence_intensity)
+
+            if self.is_negligible(velocity_deficit):
+                raise Exception(is_look_up_set(), distance_downwind / self.upwind_turbine.diameter)
+                return NoWakeCrossSection(distance_downwind, self.upwind_turbine.diameter)
 
             normalized_wake_width = calculate_width(
                                         self.upwind_thrust_coefficient,

@@ -17,6 +17,10 @@ import numpy as np
 velocity_deficit_look_up = None
 
 
+def is_look_up_set():
+    return (velocity_deficit_look_up is not None)
+
+
 def calculate_shape_at_position_sq(normalized_position_sq):
     if normalized_position_sq > 4.0:
         # shape factor is less than 0.0001% beyond 2.0
@@ -231,10 +235,18 @@ def solve_velocity_deficit(
         normalized_distance_downwind,
         turbulence):
 
+    MAXIMUM_DISTANCE_DOWNSTREAM = 11000.0
+
+    if normalized_distance_downwind > MAXIMUM_DISTANCE_DOWNSTREAM:
+        raise Exception(
+                "Input normalised distance "
+                f"({normalized_distance_downwind}) "
+                f"exceeds prescribed maximum {MAXIMUM_DISTANCE_DOWNSTREAM}")
+
     integrator = WakeDeficitIntegrator(
         thrust_coefficient=thrust_coefficient,
         turbulence=turbulence,
-        maximum_distance_downstream=100.0)
+        maximum_distance_downstream=MAXIMUM_DISTANCE_DOWNSTREAM)
 
     if normalized_distance_downwind <= integrator.normalised_distance_downstream:
         return integrator.velocity_deficit
