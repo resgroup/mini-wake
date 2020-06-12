@@ -24,14 +24,19 @@ class WakeAtRotorCenter:
 
         self.x = x
 
-        self.cross_section = cross_section
         self.lateral_distance = lateral_distance
         self.vertical_distance = vertical_distance
+
+        self.set_cross_Section(cross_section)
+
+    def set_cross_Section(self, cross_section):
 
         self.upwind_diameter = cross_section.upwind_diameter
         self.one_over_upwind_diameter = 1.0 / self.upwind_diameter
         self.normalised_distance_downwind = cross_section.normalised_distance_downwind
 
+        self.cross_section = cross_section
+        
     def velocity_deficit(self, lateral_offset, vertical_offset):
 
         return self.cross_section.velocity_deficit(
@@ -61,14 +66,7 @@ class TurbineWake:
             apply_meander=True,
             apply_added_turbulence=True):
 
-        if np.isnan(ambient_turbulence):
-            raise Exception("Ambient turbulence intensity is nan")
-
-        if np.isnan(ambient_velocity):
-            raise Exception("Ambient velocity intensity is nan")
-
-        self.ambient_velocity = ambient_velocity
-        self.ambient_turbulence = ambient_turbulence
+        self.set_ambient_conditions(ambient_velocity, ambient_turbulence)
 
         self.downwind_turbine = downwind_turbine
 
@@ -91,6 +89,17 @@ class TurbineWake:
         self._waked_turbulence = None
         self._next_wake = None
 
+    def set_ambient_conditions(self, ambient_velocity, ambient_turbulence):
+
+        if np.isnan(ambient_turbulence):
+            raise Exception("Ambient turbulence intensity is nan")
+
+        if np.isnan(ambient_velocity):
+            raise Exception("Ambient velocity intensity is nan")
+
+        self.ambient_velocity = ambient_velocity
+        self.ambient_turbulence = ambient_turbulence
+        
     def add_wake(self, turbine_wake):
 
         # code assumes co-ordinates have been rotated
@@ -124,10 +133,10 @@ class TurbineWake:
             max([0, abs(lateral_separation) - dual_radius]),
             max([0, abs(vertical_separation) - dual_radius]))
 
-        if self.rule_of_thumb_control_surface(downwind_separation, rd_sq, turbine_wake.waked_turbulence, turbine_wake.diameter):
-            cross_section = turbine_wake.calculate_cross_section(downwind_separation)
-        else:
-            cross_section = NoWakeCrossSection(downwind_separation, turbine_wake.diameter)
+        cross_section = self.calculate_cross_section_if_in_wake(
+            downwind_separation,
+            rd_sq,
+            turbine_wake)
 
         self.wakes.append(
             WakeAtRotorCenter(
@@ -135,6 +144,26 @@ class TurbineWake:
                 cross_section,
                 lateral_separation,
                 vertical_separation))
+
+    def calculate_cross_section_if_in_wake(
+            self,
+            downwind_separation,
+            rd_sq,
+            turbine_wake):
+
+        if self.rule_of_thumb_control_surface(
+                downwind_separation,
+                rd_sq,
+                turbine_wake.waked_turbulence,
+                turbine_wake.diameter):
+
+            return turbine_wake.calculate_cross_section(downwind_separation)
+
+        else:
+
+            return NoWakeCrossSection(
+                downwind_separation,
+                turbine_wake.diameter)
 
     def rule_of_thumb_control_surface(self, downwind_separation, rd_sq, turbulence, diameter):
 
@@ -146,7 +175,7 @@ class TurbineWake:
         normalised_downwind_separation_sq = normalised_downwind_separation * normalised_downwind_separation
 
         normalised_control_surface = a * normalised_downwind_separation_sq + b * normalised_downwind_separation + c
-        control_surface = normalised_control_surface * diameter
+        control_surface = max([0.0, normalised_control_surface * diameter])
 
         control_surface_sq = control_surface * control_surface
         
@@ -194,6 +223,18 @@ class TurbineWake:
             )
 
         return combined.combined_value
+
+    def recalculate(self, ambient_velocity, ambient_turbulence):
+
+        self._is_calculated = False
+
+        self.set_ambient_conditions(ambient_velocity, ambient_turbulence)
+
+        for wake in self.wakes: #WakeAtRotorCenter
+            # need to update cross_section
+            wake.set_cross_Section()
+
+        self.calculate()
 
     def calculate(self):
 
