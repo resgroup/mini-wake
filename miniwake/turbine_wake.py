@@ -87,6 +87,7 @@ class TurbineWake:
         self._calculated = False
         self._waked_velocity = None
         self._waked_turbulence = None
+        self._impacting_wakes = None
         self._next_wake = None
 
     def set_ambient_conditions(self, ambient_velocity, ambient_turbulence):
@@ -208,7 +209,7 @@ class TurbineWake:
                 wake.normalised_distance_downwind,
                 wake.normalised_lateral_distance(lateral_offset))
 
-        return combined.combined_value
+        return combined.combined_value, combined.impacting_wakes
 
     def added_turbulence_at_offset(self, lateral_offset, vertical_offset):
 
@@ -222,7 +223,7 @@ class TurbineWake:
                     vertical_offset)
             )
 
-        return combined.combined_value
+        return combined.combined_value, 0
 
     def recalculate(self, ambient_velocity, ambient_turbulence):
 
@@ -238,13 +239,13 @@ class TurbineWake:
 
     def calculate(self):
 
-        velocity_deficit = self.velocity_deficit_integrator.calculate(
+        self._velocity_deficit, self._impacting_wakes = self.velocity_deficit_integrator.calculate(
             self.downwind_turbine.diameter,
             self.velocity_deficit_at_offset)
 
-        self._waked_velocity = (1.0 - velocity_deficit) * self.ambient_velocity
+        self._waked_velocity = (1.0 - self._velocity_deficit) * self.ambient_velocity
 
-        added_turbulence = self.added_turbulence_integrator.calculate(
+        added_turbulence, _ = self.added_turbulence_integrator.calculate(
             self.downwind_turbine.diameter,
             self.added_turbulence_at_offset)
 
@@ -274,6 +275,13 @@ class TurbineWake:
                 "method has been called.")
 
     @property
+    def velocity_deficit(self):
+
+        self.validate_has_been_calculated()
+
+        return self._velocity_deficit
+
+    @property
     def waked_velocity(self):
 
         self.validate_has_been_calculated()
@@ -286,6 +294,13 @@ class TurbineWake:
         self.validate_has_been_calculated()
 
         return self._waked_turbulence
+
+    @property
+    def impacting_wakes(self):
+
+        self.validate_has_been_calculated()
+
+        return self._impacting_wakes
 
     @property
     def near_wake_length(self):

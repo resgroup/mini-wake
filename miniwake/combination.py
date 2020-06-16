@@ -45,8 +45,8 @@ class VelocityDeficitCombiner:
             return math.sqrt(self.far_combination_total)
 
     @property
-    def number_of_impactive_wakes(self):
-        self.impactive_wakes.count
+    def impacting_wakes(self):
+        return self.impactive_wakes.count
 
 
 class AddedTurbulenceCombiner:

@@ -25,7 +25,7 @@ class VelocityDeficitIntegrator:
 
         self.laterals = [math.sin(theta) * self.effective_faction for theta in self.thetas]
         self.verticals = [math.cos(theta) * self.effective_faction for theta in self.thetas]
-
+        
     def calculate(self,
                   downwind_rotor_diameter,
                   wake_integral):
@@ -33,17 +33,24 @@ class VelocityDeficitIntegrator:
         effective_radius = self.effective_faction * downwind_rotor_diameter
 
         combined_value = 0.0
+        impacting_wakes_list = []
 
         for i in range(self.number_of_sections):
 
             lateral_offset = self.laterals[i] * downwind_rotor_diameter
             vertical_offset = self.verticals[i] * downwind_rotor_diameter
 
+            value, impacting_wakes = wake_integral(
+                lateral_offset,
+                vertical_offset)
+
+            impacting_wakes_list.append(impacting_wakes)
+
             combined_value = self.add_value(
                 combined_value,
-                wake_integral(lateral_offset, vertical_offset))
+                value)
 
-        return self.finalise(combined_value)
+        return self.finalise(combined_value), max(impacting_wakes_list)
 
     def add_value(self, combined_value, value):
         return combined_value + value
