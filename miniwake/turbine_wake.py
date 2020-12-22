@@ -7,7 +7,7 @@ from .rotor_integration import AddedTurbulenceIntegrator
 from .single_wake import SingleWake
 from .single_wake import NoWakeCrossSection
 
-from .combination import VelocityDeficitCombiner
+from .combination import WeightedAverageRSSLinearVelocityDeficitCombiner
 from .combination import AddedTurbulenceCombiner
 
 from .distance import distance_sq
@@ -36,7 +36,7 @@ class WakeAtRotorCenter:
         self.normalised_distance_downwind = cross_section.normalised_distance_downwind
 
         self.cross_section = cross_section
-        
+
     def velocity_deficit(self, lateral_offset, vertical_offset):
 
         return self.cross_section.velocity_deficit(
@@ -62,6 +62,7 @@ class TurbineWake:
             ambient_velocity,
             ambient_turbulence,
             velocity_deficit_integrator=VelocityDeficitIntegrator(),
+            velocity_deficit_combiner=WeightedAverageRSSLinearVelocityDeficitCombiner(),
             added_turbulence_integrator=AddedTurbulenceIntegrator(),
             apply_meander=True,
             apply_added_turbulence=True):
@@ -77,6 +78,7 @@ class TurbineWake:
         self.hub_height = self.downwind_turbine.hub_height
 
         self.velocity_deficit_integrator = velocity_deficit_integrator
+        self.velocity_deficit_combiner = velocity_deficit_combiner
         self.added_turbulence_integrator = added_turbulence_integrator
 
         self.apply_meander = apply_meander
@@ -100,7 +102,7 @@ class TurbineWake:
 
         self.ambient_velocity = ambient_velocity
         self.ambient_turbulence = ambient_turbulence
-        
+
     def add_wake(self, turbine_wake):
 
         # code assumes co-ordinates have been rotated
@@ -109,9 +111,9 @@ class TurbineWake:
 
         if not turbine_wake.is_calculated:
             raise Exception(
-                    "Wake cannot be added as it "
-                    "hasn't been calculated yet. "
-                    "Call calculate() method first.")
+                "Wake cannot be added as it "
+                "hasn't been calculated yet. "
+                "Call calculate() method first.")
 
         if len(self.wakes) > 0:
             if turbine_wake.x < self.wakes[-1].x:
@@ -179,7 +181,7 @@ class TurbineWake:
         control_surface = max([0.0, normalised_control_surface * diameter])
 
         control_surface_sq = control_surface * control_surface
-        
+
         if (rd_sq < control_surface_sq):
             return True
         else:
@@ -196,10 +198,9 @@ class TurbineWake:
 
     def velocity_deficit_at_offset(self, lateral_offset, vertical_offset):
 
-        combined = VelocityDeficitCombiner()
+        combined = self.velocity_deficit_combiner()
 
         for wake in self.wakes:
-
             velocity_deficit = wake.velocity_deficit(
                 lateral_offset,
                 vertical_offset)
@@ -209,7 +210,7 @@ class TurbineWake:
                 wake.normalised_distance_downwind,
                 wake.normalised_lateral_distance(lateral_offset))
 
-        return combined.combined_value, combined.impacting_wakes
+        return combined.combined_value(), combined.impacting_wakes()
 
     def added_turbulence_at_offset(self, lateral_offset, vertical_offset):
 
@@ -223,7 +224,7 @@ class TurbineWake:
                     vertical_offset)
             )
 
-        return combined.combined_value, 0
+        return combined.combined_value(), 0
 
     def recalculate(self, ambient_velocity, ambient_turbulence):
 

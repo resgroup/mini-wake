@@ -1,6 +1,7 @@
 from .turbine_wake import TurbineWake
 from .rotor_integration import VelocityDeficitIntegrator
 from .rotor_integration import AddedTurbulenceIntegrator
+from .combination import WeightedAverageRSSLinearVelocityDeficitCombiner
 
 
 class WindFarmWake:
@@ -11,12 +12,14 @@ class WindFarmWake:
             ambient_conditions,
             velocity_deficit_integrator=VelocityDeficitIntegrator(),
             added_turbulence_integrator=AddedTurbulenceIntegrator(),
+            velocity_deficit_combiner=WeightedAverageRSSLinearVelocityDeficitCombiner(),
             apply_meander=True,
             apply_added_turbulence=True):
 
         self.ambient_conditions = ambient_conditions
 
         self.velocity_deficit_integrator = velocity_deficit_integrator
+        self.velocity_deficit_combiner = velocity_deficit_combiner
         self.added_turbulence_integrator = added_turbulence_integrator
 
         self.apply_meander = apply_meander
@@ -47,6 +50,7 @@ class WindFarmWake:
                 self.ambient_conditions.get_velocity(turbines[i].name),
                 self.ambient_conditions.get_turbulence(turbines[i].name),
                 velocity_deficit_integrator=self.velocity_deficit_integrator,
+                velocity_deficit_combiner= self.velocity_deficit_combiner,
                 added_turbulence_integrator=self.added_turbulence_integrator, 
                 apply_meander=self.apply_meander,
                 apply_added_turbulence=self.apply_added_turbulence)

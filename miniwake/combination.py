@@ -12,7 +12,7 @@ class NumberOfImpactiveWakesCalculator:
             self.count += 1
 
 
-class VelocityDeficitCombiner:
+class RSSMaxAutoVelocityDeficitCombiner:
 
     # RSS and Maximum Auto WC method - based on unpublished work of Mike Anderson
 
@@ -37,14 +37,60 @@ class VelocityDeficitCombiner:
             self.closest_normalised_distance_upwind = min([normalised_distance_upwind,
                                                            self.closest_normalised_distance_upwind])
 
-    @property
     def combined_value(self):
         if self.closest_normalised_distance_upwind <= 6.0:
             return self.near_combination_maximum
         else:
             return math.sqrt(self.far_combination_total)
 
-    @property
+    def impacting_wakes(self):
+        return self.impactive_wakes.count
+
+
+class WeightedAverageRSSLinearVelocityDeficitCombiner:
+
+    # Weighed Average of RSS (70%) and Linear (30%) wake combination
+
+    def __init__(self):
+        self.squared_combination_total = 0.0
+        self.linear_combination_total = 0.0
+        self.impactive_wakes = NumberOfImpactiveWakesCalculator()
+
+    def add(self, value, normalised_distance_upwind, normalised_lateral_distance):
+        if value <= 0.0:
+            return
+
+        self.impactive_wakes.add(value)
+        self.squared_combination_total += value * value
+        self.linear_combination_total += value
+
+    def combined_value(self):
+        return 0.7 * math.sqrt(self.squared_combination_total) + 0.3 * self.linear_combination_total
+
+    def impacting_wakes(self):
+        return self.impactive_wakes.count
+
+
+class StraightAverageRSSLinearVelocityDeficitCombiner:
+
+    # Straight Average of RSS and Linear wake combination
+
+    def __init__(self):
+        self.squared_combination_total = 0.0
+        self.linear_combination_total = 0.0
+        self.impactive_wakes = NumberOfImpactiveWakesCalculator()
+
+    def add(self, value, normalised_distance_upwind, normalised_lateral_distance):
+        if value <= 0.0:
+            return
+
+        self.impactive_wakes.add(value)
+        self.squared_combination_total += value * value
+        self.linear_combination_total += value
+
+    def combined_value(self):
+        return 0.5 * math.sqrt(self.squared_combination_total) + 0.5 * self.linear_combination_total
+
     def impacting_wakes(self):
         return self.impactive_wakes.count
 
@@ -64,6 +110,5 @@ class AddedTurbulenceCombiner:
 
         self.total += value * value
 
-    @property
     def combined_value(self):
         return math.sqrt(self.total)
