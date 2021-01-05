@@ -12,7 +12,7 @@ class WindFarmWake:
             ambient_conditions,
             velocity_deficit_integrator=VelocityDeficitIntegrator(),
             added_turbulence_integrator=AddedTurbulenceIntegrator(),
-            velocity_deficit_combiner=WeightedAverageRSSLinearVelocityDeficitCombiner(),
+            velocity_deficit_combiner=WeightedAverageRSSLinearVelocityDeficitCombiner,
             apply_meander=True,
             apply_added_turbulence=True):
 

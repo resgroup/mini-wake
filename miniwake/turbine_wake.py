@@ -62,7 +62,7 @@ class TurbineWake:
             ambient_velocity,
             ambient_turbulence,
             velocity_deficit_integrator=VelocityDeficitIntegrator(),
-            velocity_deficit_combiner=WeightedAverageRSSLinearVelocityDeficitCombiner(),
+            velocity_deficit_combiner=WeightedAverageRSSLinearVelocityDeficitCombiner,
             added_turbulence_integrator=AddedTurbulenceIntegrator(),
             apply_meander=True,
             apply_added_turbulence=True):
