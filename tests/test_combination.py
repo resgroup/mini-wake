@@ -1,11 +1,11 @@
 import pytest
 
-from miniwake.combination import VelocityDeficitCombiner
+from miniwake.combination import RSSMaxAutoVelocityDeficitCombiner
 
 
 def test_velicity_deficit_combination():
 
-    combiner = VelocityDeficitCombiner()
+    combiner = RSSMaxAutoVelocityDeficitCombiner()
 
     combiner.add(value=0.1, normalised_distance_upwind=3.0, normalised_lateral_distance=0.0)
 
