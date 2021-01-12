@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="miniwake",
-    version="0.0.13",
+    version="0.0.14",
     author="RES",
     author_email="software.team@res-group.com",
     description="An open-source, light weight, fast to run, easy to understand & carefully crafted implementation of the Ainslie eddy viscosity wake model and associated sub-models",
