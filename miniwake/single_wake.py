@@ -139,12 +139,12 @@ class SingleWake:
 
     def calculate(self, distance_downwind):
 
-        if distance_downwind < 0.0 or \
+        if distance_downwind <= 0.0 or \
                 self.is_negligible(self.upwind_thrust_coefficient) or \
                 self.is_negligible(self.upwind_turbine.diameter):
             return NoWakeCrossSection(distance_downwind, self.upwind_turbine.diameter)
 
-        if distance_downwind <= 0:
+        if distance_downwind < 0:
             raise Exception("Distance downwind must be a positive number")
 
         normalized_distance_downwind = distance_downwind / self.upwind_turbine.diameter
